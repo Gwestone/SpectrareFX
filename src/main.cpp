@@ -7,26 +7,22 @@
 #include <glm/mat4x4.hpp>
 
 #include <set>
-#include "Graphics/Window.h"
-#include "Graphics/Renderer.h"
-#include "Graphics/Device.h"
+#include "Graphics/App.h"
 
 int main() {
 
-    Window window(600, 800, "SpectrareFX");
+    App app;
 
-    Logger log;
-    log.setLoggingLevel(LoggingLevels::INFO);
-    Device device(window, log);
+    app.run();
 //    Renderer renderer(window);
 
 //    renderer.setupImgui();
 
     //main loop
-    while(!window.shouldClose()) {
-        glfwPollEvents();
+//    while(!window.shouldClose()) {
+//        glfwPollEvents();
 //        renderer.render();
-    }
+//    }
 //    renderer.wainUntilDeviceIdle();
 
     return 0;

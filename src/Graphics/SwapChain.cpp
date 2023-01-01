@@ -2,54 +2,25 @@
 #include "SwapChain.h"
 #include "Vh.h"
 
-SwapChain::SwapChain(Device &deviceRef, VkExtent2D windowExtent, const Logger &_log)
-    : device(deviceRef), swapChainExtent(windowExtent), log(_log) {
+SwapChain::SwapChain(Device &deviceRef, const Logger &_log)
+    : device(deviceRef), log(_log) {
 
     createSwapChain();
+    log.printInfo("Successfully created swap chain");
     createImageViews();
     createDepthResources();
     createRenderPass();
+    log.printInfo("Successfully created render pass");
     createFramebuffers();
+    log.printInfo("Successfully created frame buffers");
     createSyncObjects();
 
 }
 
 SwapChain::~SwapChain() {
-    for (auto imageView : swapChainImageViews) {
-        vkDestroyImageView(device.getDevice(), imageView, nullptr);
-    }
-    swapChainImageViews.clear();
 
-    if (swapChain != nullptr) {
-        vkDestroySwapchainKHR(device.getDevice(), swapChain, nullptr);
-        swapChain = nullptr;
-    }
+    clearSwapChain();
 
-    for (int i = 0; i < depthImages.size(); i++) {
-        vkDestroyImageView(device.getDevice(), depthImageViews[i], nullptr);
-        vkDestroyImage(device.getDevice(), depthImages[i], nullptr);
-        vkFreeMemory(device.getDevice(), depthImageMemorys[i], nullptr);
-    }
-
-    for (auto framebuffer : swapChainFramebuffers) {
-        vkDestroyFramebuffer(device.getDevice(), framebuffer, nullptr);
-    }
-
-    vkDestroyRenderPass(device.getDevice(), renderPass, nullptr);
-
-    // cleanup synchronization objects
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(device.getDevice(), renderFinishedSemaphores[i], nullptr);
-        vkDestroySemaphore(device.getDevice(), imageAvailableSemaphores[i], nullptr);
-        vkDestroyFence(device.getDevice(), inFlightFences[i], nullptr);
-    }
-}
-
-VkFormat SwapChain::findDepthFormat() {
-    return device.findSupportedFormat(
-            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 VkResult SwapChain::acquireNextImage(uint32_t *imageIndex) {
@@ -71,7 +42,7 @@ VkResult SwapChain::acquireNextImage(uint32_t *imageIndex) {
     return result;
 }
 
-VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex) {
+VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, const uint32_t *imageIndex) {
     if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
         vkWaitForFences(device.getDevice(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
     }
@@ -117,7 +88,6 @@ VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint32_
 
     return result;
 }
-
 void SwapChain::createSwapChain() {
     SwapChainSupportDetails swapChainSupport = device.getSwapChainSupportDetails();
 
@@ -145,7 +115,7 @@ void SwapChain::createSwapChain() {
     QueueFamilyIndices indices = device.findPhysicalQueueFamilies();
     uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentationFamily.value()};
 
-    if (indices.graphicsFamily != indices.presentationFamily) {
+    if (indices.graphicsFamily.value() != indices.presentationFamily.value()) {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createInfo.queueFamilyIndexCount = 2;
         createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -193,55 +163,7 @@ void SwapChain::createImageViews() {
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &swapChainImageViews[i]) !=
-            VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture image view!");
-        }
-    }
-}
-
-void SwapChain::createDepthResources() {
-    VkFormat depthFormat = findDepthFormat();
-
-    depthImages.resize(imageCount());
-    depthImageMemorys.resize(imageCount());
-    depthImageViews.resize(imageCount());
-
-    for (int i = 0; i < depthImages.size(); i++) {
-        VkImageCreateInfo imageInfo{};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = swapChainExtent.width;
-        imageInfo.extent.height = swapChainExtent.height;
-        imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = depthFormat;
-        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageInfo.flags = 0;
-
-        device.createImageWithInfo(
-                imageInfo,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                depthImages[i],
-                depthImageMemorys[i]);
-
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = depthImages[i];
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = depthFormat;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &depthImageViews[i]) != VK_SUCCESS) {
+        if (vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");
         }
     }
@@ -313,6 +235,7 @@ void SwapChain::createFramebuffers() {
     for (size_t i = 0; i < imageCount(); i++) {
         std::array<VkImageView, 2> attachments = {swapChainImageViews[i], depthImageViews[i]};
 
+        VkExtent2D swapChainExtent = getSwapChainExtent();
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = renderPass;
@@ -328,6 +251,53 @@ void SwapChain::createFramebuffers() {
                 nullptr,
                 &swapChainFramebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
+        }
+    }
+}
+
+void SwapChain::createDepthResources() {
+    VkFormat depthFormat = findDepthFormat();
+
+    depthImages.resize(imageCount());
+    depthImageMemorys.resize(imageCount());
+    depthImageViews.resize(imageCount());
+
+    for (int i = 0; i < depthImages.size(); i++) {
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width = swapChainExtent.width;
+        imageInfo.extent.height = swapChainExtent.height;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.format = depthFormat;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageInfo.flags = 0;
+
+        device.createImageWithInfo(
+                imageInfo,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                depthImages[i],
+                depthImageMemorys[i]);
+
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = depthImages[i];
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = depthFormat;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(device.getDevice(), &viewInfo, nullptr, &depthImageViews[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
         }
     }
 }
@@ -358,7 +328,7 @@ void SwapChain::createSyncObjects() {
 
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
     for (const auto &availableFormat : availableFormats) {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
             availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             log.printInfo("color space: srgb_nonlinear");
             return availableFormat;
@@ -378,7 +348,6 @@ VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentMod
 
      for (const auto &availablePresentMode : availablePresentModes) {
          if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-            std::cout << "Present mode: Immediate" << std::endl;
             log.printInfo("Present mode: Immediate");
             return availablePresentMode;
         }
@@ -401,5 +370,45 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
                 std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
         return actualExtent;
+    }
+}
+
+VkFormat SwapChain::findDepthFormat() {
+    return device.findSupportedFormat(
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+
+void SwapChain::clearSwapChain() {
+    log.printInfo("Cleaning swap chain");
+
+    for (auto imageView : swapChainImageViews) {
+        vkDestroyImageView(device.getDevice(), imageView, nullptr);
+    }
+    swapChainImageViews.clear();
+
+    if (swapChain != nullptr) {
+        vkDestroySwapchainKHR(device.getDevice(), swapChain, nullptr);
+        swapChain = nullptr;
+    }
+
+    for (int i = 0; i < depthImages.size(); i++) {
+        vkDestroyImageView(device.getDevice(), depthImageViews[i], nullptr);
+        vkDestroyImage(device.getDevice(), depthImages[i], nullptr);
+        vkFreeMemory(device.getDevice(), depthImageMemorys[i], nullptr);
+    }
+
+    for (auto framebuffer : swapChainFramebuffers) {
+        vkDestroyFramebuffer(device.getDevice(), framebuffer, nullptr);
+    }
+
+    vkDestroyRenderPass(device.getDevice(), renderPass, nullptr);
+
+    // cleanup synchronization objects
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(device.getDevice(), renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(device.getDevice(), imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(device.getDevice(), inFlightFences[i], nullptr);
     }
 }

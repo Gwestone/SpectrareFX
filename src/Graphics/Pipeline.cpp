@@ -2,6 +2,7 @@
 #include "Pipeline.h"
 #include "Vh.h"
 #include "../FileHelper.h"
+#include "Model.h"
 
 Pipeline::Pipeline(Device &_device, const std::string &vertexFilePath, const std::string &fragmentFilePath,
                    const PipelineConfigInfo &_createInfo, const Logger &_log) : device(_device), log(_log), createInfo(_createInfo) {
@@ -10,25 +11,12 @@ Pipeline::Pipeline(Device &_device, const std::string &vertexFilePath, const std
 
 }
 
-PipelineConfigInfo Pipeline::getDefaultPipelineInfo(const VkExtent2D &_dimensions) {
-    PipelineConfigInfo pipelineInfo{};
+void Pipeline::getDefaultPipelineInfo(PipelineConfigInfo &pipelineInfo) {
 
     //input assembly config
     pipelineInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     pipelineInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     pipelineInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
-
-    //view port config
-    pipelineInfo.viewport.x = 0;
-    pipelineInfo.viewport.y = 0;
-    pipelineInfo.viewport.width = (float)_dimensions.width;
-    pipelineInfo.viewport.height = (float)_dimensions.height;
-    pipelineInfo.viewport.minDepth = 0.0f;
-    pipelineInfo.viewport.maxDepth = 1.0f;
-
-    //scissors
-    pipelineInfo.scissor.offset = {0, 0};
-    pipelineInfo.scissor.extent = _dimensions;
 
     //rasterization info
     pipelineInfo.rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -85,7 +73,12 @@ PipelineConfigInfo Pipeline::getDefaultPipelineInfo(const VkExtent2D &_dimension
     pipelineInfo.depthStencilInfo.front = {};
     pipelineInfo.depthStencilInfo.back = {};
 
-    return pipelineInfo;
+    //dynamic states
+    pipelineInfo.dynamicStatesList = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    pipelineInfo.dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    pipelineInfo.dynamicStateCreateInfo.pDynamicStates = pipelineInfo.dynamicStatesList.data();
+    pipelineInfo.dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(pipelineInfo.dynamicStatesList.size());
+    pipelineInfo.dynamicStateCreateInfo.flags = 0;
 }
 
 VkPipelineShaderStageCreateInfo Pipeline::createFragmentShader(const std::vector<char> &bytecode) {
@@ -119,7 +112,7 @@ VkPipelineShaderStageCreateInfo Pipeline::createVertexShader(const std::vector<c
 void Pipeline::createGraphicsPipeline(const std::string &vertexFilePath, const std::string &fragmentFilePath) {
 
     assert(createInfo.renderPass != VK_NULL_HANDLE && "cant create graphics pipeline: no renderPass is provided");
-    assert(createInfo.pipelineLayoutInfo != VK_NULL_HANDLE && "cant create graphics pipeline: no pipelineLayout is provided");
+    assert(createInfo.pipelineLayoutInfo != VK_NULL_HANDLE && "cant create graphics pipeline: no _pipelineLayout is provided");
 
     auto fragBytecode =  FileHelper::readFile(fragmentFilePath);
     auto vertexBytecode =  FileHelper::readFile(vertexFilePath);
@@ -129,20 +122,25 @@ void Pipeline::createGraphicsPipeline(const std::string &vertexFilePath, const s
 
     VkPipelineShaderStageCreateInfo shaderStages[2] = {vertexShaderStageInfo, fragmentShaderStageInfo};
 
+
+    //pipeline input data description
+    auto vertexAttributes = Vertex::getAttributeDescription();
+    auto vertexBinding = Vertex::getBindingDescription();
+
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributes.size());
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexAttributeDescriptions = vertexAttributes.data();
+    vertexInputInfo.pVertexBindingDescriptions = &vertexBinding;
 
     //viewport state
     VkPipelineViewportStateCreateInfo viewportInfo{};
     viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportInfo.viewportCount = 1;
-    viewportInfo.pViewports = &createInfo.viewport;
-    viewportInfo.scissorCount = 1;
-    viewportInfo.pScissors = &createInfo.scissor;
+    viewportInfo.viewportCount = 0;
+    viewportInfo.pViewports = nullptr;
+    viewportInfo.scissorCount = 0;
+    viewportInfo.pScissors = nullptr;
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -156,7 +154,16 @@ void Pipeline::createGraphicsPipeline(const std::string &vertexFilePath, const s
     pipelineCreateInfo.pDepthStencilState = &createInfo.depthStencilInfo; // Optional
     pipelineCreateInfo.pColorBlendState = &createInfo.colorBlendInfo;
 
-    pipelineCreateInfo.pDynamicState = nullptr; //need to set
+
+    std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.pDynamicStates = dynamicStates.data();
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.flags = 0;
+
+    pipelineCreateInfo.pDynamicState = &dynamicState; //need to set
 
     pipelineCreateInfo.layout = createInfo.pipelineLayoutInfo; //need to set
     pipelineCreateInfo.renderPass = createInfo.renderPass; //need to set
@@ -176,4 +183,8 @@ Pipeline::~Pipeline() {
     vkDestroyShaderModule(device.getDevice(), vertexShader, nullptr);
 
     vkDestroyPipeline(device.getDevice(), graphicsPipeline, nullptr);
+}
+
+void Pipeline::bind(VkCommandBuffer const &commandBuffer) {
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }

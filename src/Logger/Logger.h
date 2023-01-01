@@ -14,7 +14,7 @@ private:
     enum MESSAGE_COLOR_CODES{
         RESET = 0, RED = 31, YELLOW = 33, CYAN = 36
     };
-    LoggingLevels currentLevel = LoggingLevels::ERROR;
+    LoggingLevels currentLevel = LoggingLevels::INFO;
 public:
     void printInfo(const std::string& message) const;
     void printWarn(const std::string& message) const;

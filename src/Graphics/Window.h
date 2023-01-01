@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include <string>
+#include <vulkan/vulkan_core.h>
 
 class Window {
 private:
@@ -17,6 +18,8 @@ public:
     bool shouldClose();
     GLFWwindow* getWindowObj();
     ~Window();
+
+    VkExtent2D getExtent() const {return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};};
 };
 
 #endif //PARALLEL_WINDOW_H

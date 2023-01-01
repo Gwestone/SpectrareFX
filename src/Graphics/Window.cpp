@@ -5,6 +5,8 @@ void Window::init_window() {
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(width, height, windowTitle.c_str(), nullptr, nullptr);
+
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 }
 
 void Window::clearWindow() {

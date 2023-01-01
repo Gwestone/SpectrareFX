@@ -5,8 +5,6 @@
 #include "Device.h"
 
 struct PipelineConfigInfo {
-    VkViewport viewport;
-    VkRect2D scissor;
     VkPipelineViewportStateCreateInfo viewportInfo;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
     VkPipelineRasterizationStateCreateInfo rasterizationInfo;
@@ -14,6 +12,10 @@ struct PipelineConfigInfo {
     VkPipelineColorBlendAttachmentState colorBlendAttachment;
     VkPipelineColorBlendStateCreateInfo colorBlendInfo;
     VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+
+    std::vector<VkDynamicState> dynamicStatesList;
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo;
+
     VkPipelineLayout pipelineLayoutInfo = nullptr;
     VkRenderPass renderPass = nullptr;
     uint32_t subpass = 0;
@@ -24,7 +26,12 @@ public:
     Pipeline(Device &_device, const std::string &vertexFilePath, const std::string &fragmentFilePath,
              const PipelineConfigInfo &_createInfo, const Logger &_log);
     ~Pipeline();
-    static PipelineConfigInfo getDefaultPipelineInfo(const VkExtent2D &_dimensions);
+
+    Pipeline(const Pipeline &) = delete;
+    Pipeline& operator=(const Pipeline &) = delete;
+
+    void bind(const VkCommandBuffer &commandBuffer);
+    static void getDefaultPipelineInfo(PipelineConfigInfo &pipelineInfo);
 private:
     VkPipelineShaderStageCreateInfo fragmentShaderStageInfo;
     VkShaderModule fragmentShader;

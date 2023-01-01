@@ -42,7 +42,7 @@ public:
     static uint32_t                             getSwapChainImageCount(const SwapChainSupportDetails& details);
     static VkPipeline                           createGraphicsPipeline(const VkDevice &logDevice, const VkExtent2D &swapExtent, const VkRenderPass &renderPass);
     static VkShaderModule                       createShaderModule(const std::vector<char> &shaderBytecode, const VkDevice &logDevice);
-    static VkRenderPass                         createRenderPass(const VkSurfaceFormatKHR &windowSurface, const VkDevice &logDevice);
+    static VkRenderPass                         createRenderPass(const VkFormat &renderPassFormat, const VkDevice &logDevice);
     static std::vector<VkFramebuffer>           createFrameBuffers(const VkDevice &logDevice, const std::vector<VkImageView> &swapChainImageViews, const VkExtent2D &extent, const VkRenderPass &renderPass);
     static std::vector<VkCommandPool>           createCommandPoolsList(const VkDevice &logDevice, QueueFamilyIndices indices);
     static std::vector<VkCommandBuffer>         createCommandBuffers(const VkDevice &logDevice, const std::vector<VkCommandPool> &commandPoolsList);
@@ -55,7 +55,7 @@ public:
                                                           const VkExtent2D &swapChainExtent, const VkPipeline &graphicsPipeline,
                                                           const VkQueue &presentQueue, int currentFrame, Renderer &renderer);
     static SyncObjects                          createSyncObjects(VkDevice logDevice);
-    static std::vector<VkImageView>             createImageViewList(const VkDevice &logDevice, const VkSurfaceFormatKHR &surfaceFormat, const std::vector<VkImage> &swapChainImages);
+    static std::vector<VkImageView>             createImageViewList(const VkDevice &logDevice, const VkFormat &imagesFormat, const std::vector<VkImage> &swapChainImages);
     static std::vector<VkImage>                 createSwapChainImages(const VkDevice &logDevice, const VkSwapchainKHR &swapChain);
 
     static const bool enableValidationLayers;

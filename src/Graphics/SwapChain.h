@@ -9,11 +9,11 @@ class SwapChain {
 public:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-    SwapChain(Device &deviceRef, VkExtent2D windowExtent, const Logger &_log);
+    SwapChain(Device &deviceRef, const Logger &_log);
     ~SwapChain();
 
     SwapChain(const SwapChain &) = delete;
-    void operator=(const SwapChain &) = delete;
+    SwapChain operator=(const SwapChain &) = delete;
 
     VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
     VkRenderPass getRenderPass() { return renderPass; }
@@ -30,7 +30,7 @@ public:
     VkFormat findDepthFormat();
 
     VkResult acquireNextImage(uint32_t *imageIndex);
-    VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
+    VkResult submitCommandBuffers(const VkCommandBuffer *buffers, const uint32_t *imageIndex);
 
 private:
     void createSwapChain();
@@ -39,6 +39,8 @@ private:
     void createRenderPass();
     void createFramebuffers();
     void createSyncObjects();
+
+    void clearSwapChain();
 
     // Helper functions
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);

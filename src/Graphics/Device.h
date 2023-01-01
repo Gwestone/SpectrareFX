@@ -17,12 +17,9 @@ public:
     Device &operator=(Device &&) = delete;
 
     Device(const Window &_window, const Logger &_log);
-    VkDevice getDevice(){return device_;};
     SwapChainSupportDetails getSwapChainSupportDetails();
     QueueFamilyIndices findPhysicalQueueFamilies();
     VkPhysicalDevice& getPhysicalDevice();
-    VkQueue getGraphicsQueue(){return graphicsQueue;};
-    VkQueue getPresentationQueue(){return presentationQueue;};
     const VkSurfaceKHR & getSurface();
     Window & getWindow();
     void createImageWithInfo(
@@ -30,16 +27,25 @@ public:
             VkMemoryPropertyFlags properties,
             VkImage &image,
             VkDeviceMemory &imageMemory);
+    void createBuffer(
+            VkDeviceSize size,
+            VkBufferUsageFlags usage,
+            VkMemoryPropertyFlags properties,
+            VkBuffer &buffer,
+            VkDeviceMemory &bufferMemory);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     VkFormat findSupportedFormat( const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
+    VkDevice getDevice(){return device_;};
+    VkQueue getGraphicsQueue(){return graphicsQueue;};
+    VkQueue getPresentationQueue(){return presentationQueue;};
+    VkCommandPool getCommandPool(){return commandPool;};
+    VkResult copyBuffer(const VkBuffer & _srcBuffer, const VkBuffer & _dstBuffer, VkDeviceSize size);
+
 private:
     Logger log;
-
     VkInstance instance;
-
     DebugLayers debugLayers;
-
     VkPhysicalDevice physicalDevice;
     Window window;
     VkCommandPool commandPool;

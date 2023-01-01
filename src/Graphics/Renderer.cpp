@@ -45,10 +45,10 @@ Renderer::Renderer(const Window &_window) : window(_window) {
     swapChainDetails = Vh::querySwapChainSupportDetails(physicalDevice, windowSurface);
     swapChainImagesList = Vh::createSwapChainImages(logicalDevice, swapChain);
     surfaceFormat = Vh::chooseSurfaceFormat(swapChainDetails);
-    swapChainImageViewList = Vh::createImageViewList(logicalDevice, surfaceFormat, swapChainImagesList);
+    swapChainImageViewList = Vh::createImageViewList(logicalDevice, surfaceFormat.format, swapChainImagesList);
 
     dimensions = Vh::chooseSwapExtent(swapChainDetails, window.getWindowObj());
-    renderPass = Vh::createRenderPass(surfaceFormat, logicalDevice);
+    renderPass = Vh::createRenderPass(surfaceFormat.format, logicalDevice);
 
     //start pipeline
     graphicsPipeline = Vh::createGraphicsPipeline(logicalDevice, dimensions, renderPass);
@@ -118,7 +118,7 @@ void Renderer::recreateSwapChain() {
 //    renderPass = Vh::createRenderPass(surfaceFormat, logicalDevice);
     swapChain = Vh::createSwapChain(physicalDevice, windowSurface, window.getWindowObj(), logicalDevice, VK_NULL_HANDLE, log);
     swapChainImagesList = Vh::createSwapChainImages(logicalDevice, swapChain);
-    swapChainImageViewList = Vh::createImageViewList(logicalDevice, surfaceFormat, swapChainImagesList);
+    swapChainImageViewList = Vh::createImageViewList(logicalDevice, surfaceFormat.format, swapChainImagesList);
     swapChainFrameBuffers = Vh::createFrameBuffers(logicalDevice, swapChainImageViewList, dimensions, renderPass);
 }
 

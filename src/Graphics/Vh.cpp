@@ -590,9 +590,9 @@ VkShaderModule Vh::createShaderModule(const std::vector<char> &shaderBytecode, c
     return module;
 }
 
-VkRenderPass Vh::createRenderPass(const VkSurfaceFormatKHR &windowSurface, VkDevice const &logDevice) {
+VkRenderPass Vh::createRenderPass(const VkFormat &renderPassFormat, VkDevice const &logDevice) {
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = windowSurface.format;
+    colorAttachment.format = renderPassFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -847,7 +847,7 @@ SyncObjects Vh::createSyncObjects(VkDevice logDevice) {
     return syncObjects;
 }
 
-std::vector<VkImageView> Vh::createImageViewList(VkDevice const &logDevice, const VkSurfaceFormatKHR &surfaceFormat, const std::vector<VkImage> &swapChainImages) {
+std::vector<VkImageView> Vh::createImageViewList(VkDevice const &logDevice, const VkFormat &imagesFormat, const std::vector<VkImage> &swapChainImages) {
 
     std::vector<VkImageView> imageViewList;
     imageViewList.resize(swapChainImages.size());
@@ -857,7 +857,7 @@ std::vector<VkImageView> Vh::createImageViewList(VkDevice const &logDevice, cons
         imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         imageViewInfo.image = swapChainImages[i];
         imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewInfo.format = surfaceFormat.format;
+        imageViewInfo.format = imagesFormat;
 
         imageViewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
