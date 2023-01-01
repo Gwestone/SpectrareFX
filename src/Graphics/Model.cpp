@@ -83,13 +83,3 @@ void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {
     vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
 }
 
-glm::mat2 Model::rotateTransformationMatrix(const glm::mat2 &_transformation, float rad) {
-    const float c = glm::cos(rad);
-    const float s = glm::sin(rad);
-
-    glm::mat2 rotation = {{c, -s},
-                          {s, c}};
-
-    return _transformation * rotation;
-}
-

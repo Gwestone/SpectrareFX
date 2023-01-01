@@ -1,7 +1,8 @@
 #include "App.h"
+#include "Object.h"
 
 App::App() {
-    loadModels();
+    loadObjects();
     createSwapChain();
     createPipeline();
     createCommandBuffers();
@@ -64,6 +65,12 @@ void App::createCommandBuffers() {
 }
 
 void App::drawFrame() {
+
+//    start = std::chrono::duration_cast<std::chrono::milliseconds >(
+//            std::chrono::system_clock::now().time_since_epoch()
+//    );
+
+    frame = (frame + 1) % 1000;
     uint32_t imageIndex;
     auto result = swapChain->acquireNextImage(&imageIndex);
 
@@ -82,6 +89,14 @@ void App::drawFrame() {
     }else if (result != VK_SUCCESS){
         throw std::runtime_error("cant submit images to GPU");
     }
+
+    std::chrono::milliseconds end = std::chrono::duration_cast<std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()
+    );
+
+//    std::chrono::milliseconds frametime = (end - start);
+//
+//    log.printInfo("frame time: " + std::to_string(frametime.count()));
 
 }
 
@@ -116,21 +131,18 @@ void App::createSwapChain() {
     swapChain = std::make_unique<SwapChain>(device, log);
 }
 
-void App::loadModels() {
-    std::vector<Vertex> vertices = {
-            {{0.0f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0}},
-            {{-0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0}},
-            {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0}}
-    };
+void App::loadObjects() {
+    Object cube{};
+    auto model = App::createCubeModel(device, {0.0f, 0.0f, 0.0f});
 
-    model = std::make_unique<Model>(device, vertices);
+    cube.mesh = std::move(model);
+    cube.transform.translation = {0.0f, 0.0f, 0.5f};
+    cube.transform.scaleVector = {0.5f, 0.5f, 0.5f};
 
+    objects.push_back(std::move(cube));
 }
 
 void App::recordCommandBuffer(int imageIndex) {
-
-    frame = (frame + 1) % 3000;
-
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     if (vkBeginCommandBuffer(commandBuffersList[imageIndex], &beginInfo) != VK_SUCCESS){
@@ -168,33 +180,41 @@ void App::recordCommandBuffer(int imageIndex) {
     vkCmdSetViewport(commandBuffersList[imageIndex], 0, 1, &viewport);
     vkCmdSetScissor(commandBuffersList[imageIndex], 0, 1, &scissor);
 
-    pipeline->bind(commandBuffersList[imageIndex]);
-    model->bindDataToBuffer(commandBuffersList[imageIndex]);
+//    for (int i = 0; i < 3; ++i) {
+//
+//    }
 
-    for (int i = 0; i < 6; ++i) {
+    recordRenderObjects(commandBuffersList[imageIndex]);
+
+    vkCmdEndRenderPass(commandBuffersList[imageIndex]);
+    if(vkEndCommandBuffer(commandBuffersList[imageIndex]) != VK_SUCCESS){
+        throw std::runtime_error("cant submit render commands");
+    }
+}
+
+void App::recordRenderObjects(VkCommandBuffer const &_commandBuffer) {
+
+    pipeline->bind(_commandBuffer);
+
+    for (auto& object : objects) {
+        object.mesh->bindDataToBuffer(_commandBuffer);
+
+        object.transform.rotation.y = glm::mod(object.transform.rotation.y + 0.0005f, glm::two_pi<float>());
+        object.transform.rotation.x = glm::mod(object.transform.rotation.x + 0.00025f, glm::two_pi<float>());
+
         PushConstantData pushConst{};
-        pushConst.offset = {-1.5f + (0.001f * frame), -0.5f + (i * 0.3f)};
+        pushConst.transformation = object.transform.getTransformationMatrix();
 
-        float radToRotate = (frame / 3000.0f) * 6.28;
-
-        pushConst.transformation = Model::rotateTransformationMatrix(pushConst.transformation, radToRotate);
-
-
-
-        vkCmdPushConstants(commandBuffersList[imageIndex],
+        vkCmdPushConstants(_commandBuffer,
                            _pipelineLayout,
                            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                            0,
                            sizeof(PushConstantData),
                            &pushConst);
 
-        model->drawDataToBuffer(commandBuffersList[imageIndex]);
+        object.mesh->drawDataToBuffer(_commandBuffer);
     }
 
-    vkCmdEndRenderPass(commandBuffersList[imageIndex]);
-    if(vkEndCommandBuffer(commandBuffersList[imageIndex]) != VK_SUCCESS){
-        throw std::runtime_error("cant submit render commands");
-    }
 }
 
 void App::freeCommandBuffers() {
@@ -203,4 +223,63 @@ void App::freeCommandBuffers() {
                          static_cast<uint32_t>(commandBuffersList.size()),
                          commandBuffersList.data());
     commandBuffersList.clear();
+}
+
+// temporary helper function, creates a 1x1x1 cube centered at offset
+std::unique_ptr<Model> App::createCubeModel(Device &device, glm::vec3 offset) {
+    std::vector<Vertex> vertices{
+
+            // left face (white)
+            {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+            {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+            {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+            {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+
+            // right face (yellow)
+            {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+            {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+            {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+
+            // top face (orange, remember y axis points down)
+            {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+            {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+            {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+            {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+
+            // bottom face (red)
+            {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+            {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+            {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+            {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+
+            // nose face (blue)
+            {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+            {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+            {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+            {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+
+            // tail face (green)
+            {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+            {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+            {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+            {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+
+    };
+    for (auto& v : vertices) {
+        v.position += offset;
+    }
+    return std::make_unique<Model>(device, vertices);
 }

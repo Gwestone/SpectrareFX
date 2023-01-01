@@ -29,7 +29,6 @@ private:
     uint32_t vertexCount;
 public:
     Model(Device &_device, const std::vector<Vertex> &_vertices);
-    static glm::mat2 rotateTransformationMatrix(const glm::mat2 &_transformation, float rad);
 
     void createVertexBuffers(const std::vector<Vertex>& _vertexList);
     void bindDataToBuffer(const VkCommandBuffer &commandBuffer);
