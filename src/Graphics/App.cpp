@@ -171,9 +171,9 @@ void App::recordCommandBuffer(int imageIndex) {
     pipeline->bind(commandBuffersList[imageIndex]);
     model->bindDataToBuffer(commandBuffersList[imageIndex]);
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 6; ++i) {
         PushConstantData pushConst{};
-        pushConst.offset = {-1.5f + (0.001f * frame), -0.4f + (i * 0.4f)};
+        pushConst.offset = {-1.5f + (0.001f * frame), -0.5f + (i * 0.3f)};
 
         float radToRotate = (frame / 3000.0f) * 6.28;
 

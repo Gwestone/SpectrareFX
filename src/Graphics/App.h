@@ -26,6 +26,10 @@ public:
     App();
     ~App();
     void run();
+
+    App(const App &) = delete;
+    App& operator=(const App &) = delete;
+
 private:
     void createPipeline();
     VkPipelineLayout createPipelineLayout();
