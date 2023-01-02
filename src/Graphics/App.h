@@ -16,6 +16,7 @@
 #include <glm/detail/type_mat3x3.hpp>
 #include "Device.h"
 #include "Object.h"
+#include "Camera.h"
 
 class App {
 public:
@@ -30,26 +31,32 @@ private:
     void createPipeline();
     VkPipelineLayout createPipelineLayout();
     void createCommandBuffers();
+    void createSwapChain();
+    void createCameraObject();
+
     void drawFrame();
     void loadObjects();
-    void recreateSwapChain(uint32_t imageIndex);
-    void createSwapChain();
+
     void freeCommandBuffers();
 
+    void recreateSwapChain(uint32_t imageIndex);
     void recordCommandBuffer(int imageIndex);
     void recordRenderObjects(const VkCommandBuffer &_commandBuffer);
 private:
     Window mainWindow{600, 800, "SpectrareFX"};
     Device device{mainWindow, log};
-    std::unique_ptr<SwapChain> swapChain;
-    std::unique_ptr<Pipeline> pipeline;
-    static std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset);
-    VkPipelineLayout _pipelineLayout;
+    VkPipelineLayout _pipelineLayout{};
     Logger log;
-    std::vector<VkCommandBuffer> commandBuffersList;
-    std::vector<Object> objects;
     int frame = 0;
     std::chrono::milliseconds start;
+    std::vector<VkCommandBuffer> commandBuffersList;
+    std::vector<Object> objects;
+
+    std::unique_ptr<Camera> mainCamera;
+    std::unique_ptr<SwapChain> swapChain;
+    std::unique_ptr<Pipeline> pipeline;
+private:
+    static std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset);
 };
 
 #endif //SPECTRAREFX_APP_H

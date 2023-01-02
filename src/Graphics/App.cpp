@@ -5,6 +5,7 @@ App::App() {
     loadObjects();
     createSwapChain();
     createPipeline();
+    createCameraObject();
     createCommandBuffers();
 }
 
@@ -64,11 +65,24 @@ void App::createCommandBuffers() {
     }
 }
 
+
+void App::createCameraObject() {
+    mainCamera = std::make_unique<Camera>();
+    //mainCamera->setOrthographicProjection(-1, 1, -1, 1, -1, 1);
+
+    //mainCamera->setViewDirection(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //mainCamera->setViewTarget(glm::vec3(0.0f), glm::vec3(0.0f));
+}
+
 void App::drawFrame() {
 
 //    start = std::chrono::duration_cast<std::chrono::milliseconds >(
 //            std::chrono::system_clock::now().time_since_epoch()
 //    );
+
+    float aspectRatio = swapChain->extentAspectRatio();
+    //mainCamera->setOrthographicProjection(-aspectRatio, aspectRatio, -1, 1, -1, 1);
+    mainCamera->setProspectiveProjection(1.0f, aspectRatio, 0.1f, 10.0f);
 
     frame = (frame + 1) % 1000;
     uint32_t imageIndex;
@@ -90,9 +104,9 @@ void App::drawFrame() {
         throw std::runtime_error("cant submit images to GPU");
     }
 
-    std::chrono::milliseconds end = std::chrono::duration_cast<std::chrono::milliseconds >(
-            std::chrono::system_clock::now().time_since_epoch()
-    );
+//    std::chrono::milliseconds end = std::chrono::duration_cast<std::chrono::milliseconds >(
+//            std::chrono::system_clock::now().time_since_epoch()
+//    );
 
 //    std::chrono::milliseconds frametime = (end - start);
 //
@@ -136,7 +150,7 @@ void App::loadObjects() {
     auto model = App::createCubeModel(device, {0.0f, 0.0f, 0.0f});
 
     cube.mesh = std::move(model);
-    cube.transform.translation = {0.0f, 0.0f, 0.5f};
+    cube.transform.translation = {0.0f, 0.0f, 2.5f};
     cube.transform.scaleVector = {0.5f, 0.5f, 0.5f};
 
     objects.push_back(std::move(cube));
@@ -199,11 +213,21 @@ void App::recordRenderObjects(VkCommandBuffer const &_commandBuffer) {
     for (auto& object : objects) {
         object.mesh->bindDataToBuffer(_commandBuffer);
 
-        object.transform.rotation.y = glm::mod(object.transform.rotation.y + 0.0005f, glm::two_pi<float>());
-        object.transform.rotation.x = glm::mod(object.transform.rotation.x + 0.00025f, glm::two_pi<float>());
+//        object.transform.rotation.y = glm::mod(object.transform.rotation.y + 0.0005f, glm::two_pi<float>());
+//        object.transform.rotation.x = glm::mod(object.transform.rotation.x + 0.0005f, glm::two_pi<float>());
+
+        glm::mat4 rotationMat(1);
+        rotationMat = glm::rotate(rotationMat, mainWindow.getRotation().getX(), glm::vec3(1.0, 0.0, 0.0));
+        rotationMat = glm::rotate(rotationMat, mainWindow.getRotation().getY(), glm::vec3(0.0, 1.0, 0.0));
+
+        std::cout << mainWindow.getRotation().getX() << std::endl;
+        std::cout << mainWindow.getRotation().getY() << std::endl;
+
+        mainCamera->setViewDirection(glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(rotationMat * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)));
 
         PushConstantData pushConst{};
-        pushConst.transformation = object.transform.getTransformationMatrix();
+        auto projectionView = mainCamera->getProjectionMatrix() * mainCamera->getViewMatrix();
+        pushConst.transformation = projectionView * object.transform.getTransformationMatrix();
 
         vkCmdPushConstants(_commandBuffer,
                            _pipelineLayout,
@@ -283,3 +307,4 @@ std::unique_ptr<Model> App::createCubeModel(Device &device, glm::vec3 offset) {
     }
     return std::make_unique<Model>(device, vertices);
 }
+
