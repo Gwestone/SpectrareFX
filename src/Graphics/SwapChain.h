@@ -10,6 +10,7 @@ public:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
     SwapChain(Device &deviceRef, const Logger &_log);
+    SwapChain(Device &deviceRef, const Logger &_log, SwapChain &_swapChain);
     ~SwapChain();
 
     SwapChain(const SwapChain &) = delete;
@@ -32,8 +33,14 @@ public:
     VkResult acquireNextImage(uint32_t *imageIndex);
     VkResult submitCommandBuffers(const VkCommandBuffer *buffers, const uint32_t *imageIndex);
 
+    bool compareSwapFormats(const SwapChain &_swapChain) const {
+        return _swapChain.swapChainDepthFormat == swapChainDepthFormat &&
+                _swapChain.swapChainImageFormat == swapChainImageFormat;
+    }
+
+
 private:
-    void createSwapChain();
+    void createSwapChain(VkSwapchainKHR oldSwapChain);
     void createImageViews();
     void createDepthResources();
     void createRenderPass();
@@ -48,6 +55,7 @@ private:
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
     VkFormat swapChainImageFormat;
+    VkFormat swapChainDepthFormat;
     VkExtent2D swapChainExtent;
 
     std::vector<VkFramebuffer> swapChainFramebuffers;

@@ -16,22 +16,6 @@ struct CursorPos{
     int y = 0;
 };
 
-struct Rotations{
-private:
-    float x = 0.0f;
-    float y = 0.0f;
-public:
-    void addX(float _x){
-        x = glm::mod((x + _x), glm::two_pi<float>());
-    }
-    void addY(float _y){
-        y = glm::mod((y + _y), glm::two_pi<float>());
-    }
-    float getX() const{return x;}
-    float getY() const{return y;}
-};
-
-
 class Window {
 private:
     int height;
@@ -48,7 +32,8 @@ public:
 
     VkExtent2D getExtent() const {return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};};
 
-    Rotations& getRotation(){return rotate;};
+    CursorPos& getDeltaCursorPos(){return deltaCursorPos;}
+    void resetDeltaCursorPos(){deltaCursorPos = {0,0};}
 
     bool RIGHT_MOUSE_PRESSED = false;
 
@@ -57,7 +42,7 @@ private:
     static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
     static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
     CursorPos cursorPos{};
-    Rotations rotate{};
+    CursorPos deltaCursorPos{};
 };
 
 #endif //PARALLEL_WINDOW_H

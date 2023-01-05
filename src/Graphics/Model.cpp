@@ -1,9 +1,19 @@
 #include <cstring>
 #include "Model.h"
 
-Model::Model(Device &_device, const std::vector<Vertex> &_vertices) : device(_device) {
+Model::Model(Device &_device, const Builder &_builder) : device(_device) {
 
-    createVertexBuffers(_vertices);
+    createVertexBuffers(_builder.vertices);
+    createIndexBuffers(_builder.indices);
+}
+
+Model::~Model() {
+    vkDestroyBuffer(device.getDevice(), vertexBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), vertexBufferMemory, nullptr);
+    if (hasIndices){
+        vkDestroyBuffer(device.getDevice(), indicesBuffer, nullptr);
+        vkFreeMemory(device.getDevice(), indicesBufferMemory, nullptr);
+    }
 }
 
 VkVertexInputBindingDescription Vertex::getBindingDescription() {
@@ -37,26 +47,18 @@ std::vector <VkVertexInputAttributeDescription> Vertex::getAttributeDescription(
 
 void Model::createVertexBuffers(const std::vector<Vertex> &_vertexList) {
     vertexCount = static_cast<uint32_t>(_vertexList.size());
-    VkDeviceSize allocSize = sizeof(_vertexList[0]) * _vertexList.size();
+    VkDeviceSize allocSize = sizeof(_vertexList[0]) * vertexCount;
 
-    /*
-     device.createBuffer(allocSize,
-                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            //VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                        0,
-                        vertexBuffer,
-                        vertexBufferMemory);
-     */
     device.createBuffer(allocSize,
                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer,
-                        stagingBufferMemory);
+                        stagingVertexBuffer,
+                        stagingVertexBufferMemory);
 
     void *data;
-    vkMapMemory(device.getDevice(), stagingBufferMemory, 0, allocSize, 0, &data);
+    vkMapMemory(device.getDevice(), stagingVertexBufferMemory, 0, allocSize, 0, &data);
     memcpy(data, _vertexList.data(), static_cast<size_t>(allocSize));
-    vkUnmapMemory(device.getDevice(), stagingBufferMemory);
+    vkUnmapMemory(device.getDevice(), stagingVertexBufferMemory);
 
     device.createBuffer(allocSize,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -64,11 +66,47 @@ void Model::createVertexBuffers(const std::vector<Vertex> &_vertexList) {
                         vertexBuffer,
                         vertexBufferMemory);
 
-    if (device.copyBuffer(stagingBuffer, vertexBuffer, allocSize) != VK_SUCCESS){
+    if (device.copyBuffer(stagingVertexBuffer, vertexBuffer, allocSize) != VK_SUCCESS){
         throw std::runtime_error("cant copy local buffer to gpu");
     };
-    vkDestroyBuffer(device.getDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device.getDevice(), stagingVertexBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), stagingVertexBufferMemory, nullptr);
+}
+
+void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
+    indicesCount = _indicesList.size();
+
+    if (indicesCount > 0)
+        hasIndices = true;
+
+    if(!hasIndices)
+        return;
+
+    VkDeviceSize allocSize = sizeof(_indicesList[0]) * indicesCount;
+
+    device.createBuffer(allocSize,
+                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingIndicesBuffer,
+                        stagingIndicesBufferMemory);
+
+    void *data;
+    vkMapMemory(device.getDevice(), stagingIndicesBufferMemory, 0, allocSize, 0, &data);
+    memcpy(data, _indicesList.data(), static_cast<size_t>(allocSize));
+    vkUnmapMemory(device.getDevice(), stagingIndicesBufferMemory);
+
+    device.createBuffer(allocSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        indicesBuffer,
+                        indicesBufferMemory);
+
+    if (device.copyBuffer(stagingIndicesBuffer, indicesBuffer, allocSize) != VK_SUCCESS){
+        throw std::runtime_error("cant copy local buffer to gpu");
+    };
+    vkDestroyBuffer(device.getDevice(), stagingIndicesBuffer, nullptr);
+    vkFreeMemory(device.getDevice(), stagingIndicesBufferMemory, nullptr);
+
 }
 
 void Model::bindDataToBuffer(const VkCommandBuffer &commandBuffer) {
@@ -77,9 +115,14 @@ void Model::bindDataToBuffer(const VkCommandBuffer &commandBuffer) {
     VkDeviceSize offsets[] = {0};
 
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffer, offsets);
+    if (hasIndices)
+        vkCmdBindIndexBuffer(commandBuffer, indicesBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {
-    vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+    if (hasIndices)
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indicesCount), 1, 0, 0, 0);
+    else
+        vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
 }
 

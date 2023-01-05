@@ -9,14 +9,10 @@
 #include <memory>
 #include "Model.h"
 
-struct PushConstantData{
-    glm::mat4 transformation{1.f};
-};
-
 struct TransformationPrimitive{
     glm::vec3 translation{};
     glm::vec3 scaleVector = {1.0f, 1.0f, 1.0f};
-    glm::vec3 rotation{};
+    glm::vec3 rotation{0.0f};
 
     glm::mat4 getTransformationMatrix();
     glm::mat4 getTransformationMatrixFAST();

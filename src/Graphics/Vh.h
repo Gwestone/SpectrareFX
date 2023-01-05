@@ -9,7 +9,6 @@
 #include "QueueFamilyIndices.h"
 #include "SwapChainSupportDetails.h"
 #include "SyncObjects.h"
-#include "Renderer.h"
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <cstring>
@@ -36,27 +35,8 @@ public:
     static VkSurfaceFormatKHR                   chooseSurfaceFormat(const SwapChainSupportDetails &avaiableFormats);
     static VkPresentModeKHR choosePresentMode(const SwapChainSupportDetails &avaiableFormats, const Logger &log);
     static VkExtent2D                           chooseSwapExtent(const SwapChainSupportDetails &avaiableFormats, GLFWwindow *window);
-    static VkSwapchainKHR
-    createSwapChain(const VkPhysicalDevice &physDevice, const VkSurfaceKHR &windowSurface, GLFWwindow *window,
-                    const VkDevice &logDevice, const VkSwapchainKHR &oldSwapchain, const Logger &log);
     static uint32_t                             getSwapChainImageCount(const SwapChainSupportDetails& details);
-    static VkPipeline                           createGraphicsPipeline(const VkDevice &logDevice, const VkExtent2D &swapExtent, const VkRenderPass &renderPass);
     static VkShaderModule                       createShaderModule(const std::vector<char> &shaderBytecode, const VkDevice &logDevice);
-    static VkRenderPass                         createRenderPass(const VkFormat &renderPassFormat, const VkDevice &logDevice);
-    static std::vector<VkFramebuffer>           createFrameBuffers(const VkDevice &logDevice, const std::vector<VkImageView> &swapChainImageViews, const VkExtent2D &extent, const VkRenderPass &renderPass);
-    static std::vector<VkCommandPool>           createCommandPoolsList(const VkDevice &logDevice, QueueFamilyIndices indices);
-    static std::vector<VkCommandBuffer>         createCommandBuffers(const VkDevice &logDevice, const std::vector<VkCommandPool> &commandPoolsList);
-    static void                                 recordCommandBuffer(VkCommandBuffer const &commandBuffer, uint32_t imageIndex, const VkRenderPass &renderPass,
-                                                                    const std::vector<VkFramebuffer> &swapChainFramebuffers, const VkExtent2D &swapChainExtent,
-                                                                    const VkPipeline &graphicsPipeline);
-    static void                                 drawFrame(const VkDevice &logDevice, const SyncObjects &syncObjects, const VkSwapchainKHR &swapChain,
-                                                          const std::vector<VkCommandBuffer> &commandBuffersList, const VkQueue &graphicsQueue,
-                                                          const VkRenderPass &renderPass, const std::vector<VkFramebuffer> &swapChainFramebuffers,
-                                                          const VkExtent2D &swapChainExtent, const VkPipeline &graphicsPipeline,
-                                                          const VkQueue &presentQueue, int currentFrame, Renderer &renderer);
-    static SyncObjects                          createSyncObjects(VkDevice logDevice);
-    static std::vector<VkImageView>             createImageViewList(const VkDevice &logDevice, const VkFormat &imagesFormat, const std::vector<VkImage> &swapChainImages);
-    static std::vector<VkImage>                 createSwapChainImages(const VkDevice &logDevice, const VkSwapchainKHR &swapChain);
 
     static const bool enableValidationLayers;
     static const std::vector<const char*> validationLayersList;

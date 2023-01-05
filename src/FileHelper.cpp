@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <fstream>
+#include <iostream>
 #include "FileHelper.h"
 
 std::vector<char> FileHelper::readFile(const std::string &filename) {

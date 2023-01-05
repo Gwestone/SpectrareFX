@@ -22,12 +22,14 @@ function(add_shader TARGET SHADER)
     target_sources(${TARGET} PRIVATE ${current-output-path})
 endfunction(add_shader)
 
+include_directories("./libs/tinyobjloader")
+
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 project(SpectrareFX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(SpectrareFX src/main.cpp src/Graphics/Graphics.cpp src/Graphics/Graphics.h src/Graphics/Window.cpp src/Graphics/Window.h src/Graphics/Vh.cpp src/Graphics/Vh.h src/Logger/Logger.cpp src/Logger/Logger.h src/Graphics/QueueFamilyIndices.h src/Graphics/SwapChainSupportDetails.h src/FileHelper.cpp src/FileHelper.h src/Graphics/SyncObjects.h src/Graphics/Wrapper.h src/Graphics/DebugLayer.cpp src/Graphics/DebugLayers.h src/Graphics/Renderer.cpp src/Graphics/Renderer.h src/Graphics/Pipeline.cpp src/Graphics/Pipeline.h src/Graphics/Device.cpp src/Graphics/Device.h src/Graphics/SwapChain.cpp src/Graphics/SwapChain.h src/Graphics/App.cpp src/Graphics/App.h src/Graphics/Model.cpp src/Graphics/Model.h src/Graphics/Object.cpp src/Graphics/Object.h src/Graphics/Camera.cpp src/Graphics/Camera.h)
+add_executable(SpectrareFX src/main.cpp src/Graphics/Window.cpp src/Graphics/Window.h src/Graphics/Vh.cpp src/Graphics/Vh.h src/Logger/Logger.cpp src/Logger/Logger.h src/Graphics/QueueFamilyIndices.h src/Graphics/SwapChainSupportDetails.h src/FileHelper.cpp src/FileHelper.h src/Graphics/SyncObjects.h src/Graphics/Wrapper.h src/Graphics/DebugLayer.cpp src/Graphics/DebugLayers.h src/Graphics/Pipeline.cpp src/Graphics/Pipeline.h src/Graphics/Device.cpp src/Graphics/Device.h src/Graphics/SwapChain.cpp src/Graphics/SwapChain.h src/Graphics/App.cpp src/Graphics/App.h src/Graphics/Model.cpp src/Graphics/Model.h src/Graphics/Object.cpp src/Graphics/Object.h src/Graphics/Camera.cpp src/Graphics/Camera.h src/Graphics/Render.h src/Graphics/Render.cpp src/Graphics/BasicRenderSystem.h src/Graphics/BasicRenderSystem.cpp src/Graphics/KeyboardMovementController.h src/Graphics/KeyboardMovementController.cpp)
 
 target_link_libraries(SpectrareFX glfw vulkan dl pthread X11 Xxf86vm Xrandr Xi)
 add_shader(SpectrareFX shader.frag)

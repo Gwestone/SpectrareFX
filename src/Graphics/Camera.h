@@ -6,6 +6,7 @@
 #include <glm/vec3.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#include "Object.h"
 
 class Camera {
 public:
@@ -16,12 +17,16 @@ public:
 
     void setViewTarget(glm::vec3 position, glm::vec3 target, glm::vec3 up = {0.0f, -1.0f, 0.0f});
     void setViewDirection(glm::vec3 position, glm::vec3 direction, glm::vec3 up = {0.0f, -1.0f, 0.0f});
-    void setViewXYZ(glm::vec3 position, glm::vec3 rotation);
+    void setViewYXZ(glm::vec3 position, glm::vec3 rotation);
 
     glm::mat4& getViewMatrix();
 private:
     glm::mat4 projectionMatrix{1.0f};
     glm::mat4 viewMatrix{1.0f};
+
+public:
+    glm::vec3 direction{0.0f, 0.0f, 1.0f};
+    glm::vec3 position{0.0f, 0.0f, 0.0f};
 };
 
 #endif //SPECTRAREFX_CAMERA_H

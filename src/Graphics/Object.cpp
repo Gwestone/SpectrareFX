@@ -3,9 +3,10 @@
 glm::mat4 TransformationPrimitive::getTransformationMatrix() {
 
     auto transform = glm::translate(glm::mat4(1.0f), translation);
+
     transform = glm::scale(transform, scaleVector);
-    transform = glm::rotate(transform, rotation.x, {1.0f, 0.0f, 0.0f});
-    transform = glm::rotate(transform, rotation.y, {0.0f, 1.0f, 0.0f});
+    transform = glm::rotate(transform, rotation.x, {0.0f, 1.0f, 0.0f});
+    transform = glm::rotate(transform, rotation.y, {1.0f, 0.0f, 0.0f});
     transform = glm::rotate(transform, rotation.z, {0.0f, 0.0f, 1.0f});
 
     return transform;

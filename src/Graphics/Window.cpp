@@ -46,8 +46,8 @@ void Window::mouse_button_callback(GLFWwindow *window, int button, int action, i
         std::cout << "trigger press" << std::endl;
         double x, y;
         glfwGetCursorPos(window, &x, &y);
-        windowObj->cursorPos.x = x;
-        windowObj->cursorPos.y = y;
+        windowObj->cursorPos.x = static_cast<int>(x);
+        windowObj->cursorPos.y = static_cast<int>(y);
 
         windowObj->RIGHT_MOUSE_PRESSED = true;
 
@@ -67,17 +67,14 @@ void Window::mouse_button_callback(GLFWwindow *window, int button, int action, i
 void Window::cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     Window* windowObj = static_cast<Window*>(glfwGetWindowUserPointer(window));
     if (windowObj->RIGHT_MOUSE_PRESSED){
-        double x, y;
-        glfwGetCursorPos(window, &x, &y);
 
-        double xDiff = windowObj->cursorPos.x - x;
-        double yDiff = y - windowObj->cursorPos.y;
+        double xDiff = xpos - windowObj->cursorPos.x;
+        double yDiff = ypos - windowObj->cursorPos.y;
 
-        windowObj->rotate.addX((float)yDiff / 1000);
-        windowObj->rotate.addY((float)xDiff / 1000);
+        windowObj->deltaCursorPos = {static_cast<int>(xDiff), static_cast<int>(yDiff)};
 
-        windowObj->cursorPos.x = x;
-        windowObj->cursorPos.y = y;
+        windowObj->cursorPos.x = static_cast<int>(xpos);
+        windowObj->cursorPos.y = static_cast<int>(ypos);
         return;
     }
 }

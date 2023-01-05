@@ -16,21 +16,43 @@ struct Vertex{
 
     static VkVertexInputBindingDescription getBindingDescription();
     static std::vector <VkVertexInputAttributeDescription> getAttributeDescription();
+};
 
+struct Builder{
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
 };
 
 class Model {
 private:
     Device& device;
+
+    //vertex buffer
     VkBuffer vertexBuffer;
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
     VkDeviceMemory vertexBufferMemory;
-    uint32_t vertexCount;
+    //-----------------------------------
+    VkBuffer stagingVertexBuffer;
+    VkDeviceMemory stagingVertexBufferMemory;
+
+    //indices buffer
+    VkBuffer indicesBuffer;
+    VkDeviceMemory indicesBufferMemory;
+    //-----------------------------------
+    VkBuffer stagingIndicesBuffer;
+    VkDeviceMemory stagingIndicesBufferMemory;
+
+    uint32_t vertexCount = 0;
+
+    uint32_t indicesCount = 0;
+    bool hasIndices = false;
 public:
-    Model(Device &_device, const std::vector<Vertex> &_vertices);
+    Model(Device &_device, const Builder &_builder);
+    ~Model();
 
     void createVertexBuffers(const std::vector<Vertex>& _vertexList);
+
+    void createIndexBuffers(const std::vector<uint32_t>& _indicesList);
+
     void bindDataToBuffer(const VkCommandBuffer &commandBuffer);
     void drawDataToBuffer(const VkCommandBuffer &commandBuffer) const;
 

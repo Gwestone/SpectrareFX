@@ -5,7 +5,7 @@
 SwapChain::SwapChain(Device &deviceRef, const Logger &_log)
     : device(deviceRef), log(_log) {
 
-    createSwapChain();
+    createSwapChain(VK_NULL_HANDLE);
     log.printInfo("Successfully created swap chain");
     createImageViews();
     createDepthResources();
@@ -16,6 +16,19 @@ SwapChain::SwapChain(Device &deviceRef, const Logger &_log)
     createSyncObjects();
 
 }
+
+SwapChain::SwapChain(Device &deviceRef, const Logger &_log, SwapChain &_swapChain) : device(deviceRef), log(_log) {
+    createSwapChain(_swapChain.swapChain);
+    log.printInfo("Successfully created swap chain");
+    createImageViews();
+    createDepthResources();
+    createRenderPass();
+    log.printInfo("Successfully created render pass");
+    createFramebuffers();
+    log.printInfo("Successfully created frame buffers");
+    createSyncObjects();
+}
+
 
 SwapChain::~SwapChain() {
 
@@ -88,7 +101,7 @@ VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, const u
 
     return result;
 }
-void SwapChain::createSwapChain() {
+void SwapChain::createSwapChain(VkSwapchainKHR oldSwapChain) {
     SwapChainSupportDetails swapChainSupport = device.getSwapChainSupportDetails();
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -131,7 +144,7 @@ void SwapChain::createSwapChain() {
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
 
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    createInfo.oldSwapchain = oldSwapChain;
 
     if (vkCreateSwapchainKHR(device.getDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
@@ -257,6 +270,7 @@ void SwapChain::createFramebuffers() {
 
 void SwapChain::createDepthResources() {
     VkFormat depthFormat = findDepthFormat();
+    swapChainDepthFormat = depthFormat;
 
     depthImages.resize(imageCount());
     depthImageMemorys.resize(imageCount());
