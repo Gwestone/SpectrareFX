@@ -6,7 +6,9 @@
 #include "Window.h"
 #include "Device.h"
 #include "Model.h"
+
 #include "BasicRenderSystem.h"
+#include "KeyboardMovementController.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -42,7 +44,7 @@ private:
 
     std::unique_ptr<Camera> mainCamera;
 private:
-    static std::unique_ptr<Model> createCubeModel(Device &device, glm::vec3 offset);
+
 };
 
 #endif //SPECTRAREFX_APP_H
