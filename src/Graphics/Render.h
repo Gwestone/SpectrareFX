@@ -1,12 +1,8 @@
-#ifndef SPECTRAREFX_RENDER_H
-#define SPECTRAREFX_RENDER_H
+#pragma once
 
 #include <vulkan/vulkan_core.h>
 #include <memory>
-#include "Window.h"
-#include "Device.h"
 #include "SwapChain.h"
-#include "Pipeline.h"
 #include "Model.h"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -14,9 +10,6 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <glm/detail/type_mat3x3.hpp>
-#include "Device.h"
-#include "Object.h"
-#include "Camera.h"
 
 class Render {
 public:
@@ -64,6 +57,3 @@ private:
     int currentFrameIndex = 0;
     bool isFrameStarted = false;
 };
-
-
-#endif //SPECTRAREFX_RENDER_H

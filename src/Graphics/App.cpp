@@ -1,4 +1,5 @@
 #include "App.h"
+#include "systems/ImGuiRenderSystem.h"
 
 App::App() {
     globalPool = lve::LveDescriptorPool::Builder(device)
@@ -11,11 +12,7 @@ App::App() {
 }
 
 
-App::~App() {
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
+App::~App() {}
 
 void App::createCameraObject() {
     mainCamera = std::make_unique<Camera>();
@@ -52,43 +49,12 @@ void App::run() {
     }
 
     BasicRenderSystem basicRenderSystem{device, renderer.getRenderPass(), globalSetLayout->getDescriptorSetLayout(), log};
+    ImGuiRenderSystem imGuiRenderSystem{mainWindow, device, log, renderer.getRenderPass(), globalPool->getDescriptorPool()};
 
     Object ViewerObject{};
     ViewerObject.transform.translation = {0, 0, -1};
     KeyboardMovementController cameraController{};
 
-    //init imgui
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-//    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-    io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 18);
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForVulkan(mainWindow.getWindowObj(), true);
-
-    ImGui_ImplVulkan_InitInfo guiInitInfo{};
-    guiInitInfo.Instance = device.getInstance();
-    guiInitInfo.Queue = device.getGraphicsQueue();
-    guiInitInfo.DescriptorPool = globalPool->getDescriptorPool();
-    guiInitInfo.Device = device.getDevice();
-    guiInitInfo.PhysicalDevice = device.getPhysicalDevice();
-    guiInitInfo.ImageCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
-    guiInitInfo.MinImageCount = SwapChain::MAX_FRAMES_IN_FLIGHT;
-//    guiInitInfo.MSAASamples = msaaSample;
-    ImGui_ImplVulkan_Init(&guiInitInfo, renderer.getRenderPass());
-
-    //create font texture atlas for imgui
-    auto commandBuffer = renderer.beginFrame();
-    ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-    renderer.endFrame();
-    vkDeviceWaitIdle(device.getDevice());
-    ImGui_ImplVulkan_DestroyFontUploadObjects();
-
-    //end init imgui
 
     while (!mainWindow.shouldClose()) {
 
@@ -117,7 +83,10 @@ void App::run() {
 
             //render
             renderer.beginRenderPass(commandBuffer);
+
             basicRenderSystem.renderGameObjects(frameInfo, objects);
+            imGuiRenderSystem.renderImGui(frameInfo);
+
             renderer.endRenderPass(commandBuffer);
             renderer.endFrame();
         }

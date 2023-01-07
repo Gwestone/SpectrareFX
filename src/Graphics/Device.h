@@ -1,5 +1,4 @@
-#ifndef PARALLEL_DEVICE_H
-#define PARALLEL_DEVICE_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -67,5 +66,3 @@ private:
 public:
     VkPhysicalDeviceProperties properties;
 };
-
-#endif //PARALLEL_DEVICE_H

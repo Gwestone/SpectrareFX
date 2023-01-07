@@ -1,17 +1,14 @@
-#ifndef SPECTRAREFX_MODEL_H
-#define SPECTRAREFX_MODEL_H
-
-#include "Device.h"
+#pragma once
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
-#include <glm/vec3.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <glm/vec3.hpp>
 #include <glm/gtx/hash.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/ext/matrix_float3x3.hpp>
 
-#include "unordered_map"
+#include <unordered_map>
 #include <cstring>
 #include <memory>
 #include <vulkan/vulkan.h>
@@ -68,6 +65,3 @@ public:
 public:
     static std::unique_ptr<Model> loadFromFile(Device& device, const std::string &_filepath);
 };
-
-
-#endif //SPECTRAREFX_MODEL_H

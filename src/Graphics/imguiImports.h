@@ -1,5 +1,4 @@
-#ifndef SPECTRAREFX_IMGUIIMPORTS_H
-#define SPECTRAREFX_IMGUIIMPORTS_H
+#pragma once
 
 #include <imconfig.h>
 //#include <imgui_tables.cpp>
@@ -12,5 +11,3 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
 //#include <backends/imgui_impl_vulkan.cpp>
-
-#endif //SPECTRAREFX_IMGUIIMPORTS_H

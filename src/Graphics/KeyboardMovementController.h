@@ -1,8 +1,5 @@
-#ifndef SPECTRAREFX_KEYBOARDMOVEMENTCONTROLLER_H
-#define SPECTRAREFX_KEYBOARDMOVEMENTCONTROLLER_H
+#pragma once
 
-#include "Object.h"
-#include "Window.h"
 #include "Camera.h"
 
 class KeyboardMovementController {
@@ -29,5 +26,3 @@ public:
     float moveSpeed = 1.0f;
     float lookSpeed = 1.0f;
 };
-
-#endif //SPECTRAREFX_KEYBOARDMOVEMENTCONTROLLER_H

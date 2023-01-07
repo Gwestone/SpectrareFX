@@ -1,13 +1,9 @@
-#ifndef SPECTRAREFX_BASICRENDERSYSTEM_H
-#define SPECTRAREFX_BASICRENDERSYSTEM_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <memory>
-#include "Device.h"
-#include "Pipeline.h"
-#include "Object.h"
-#include "Camera.h"
-#include "FrameInfo.h"
+#include "../Pipeline.h"
+#include "../FrameInfo.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -37,5 +33,3 @@ private:
     std::unique_ptr<Pipeline> lvePipeline;
     VkPipelineLayout pipelineLayout;
 };
-
-#endif //SPECTRAREFX_BASICRENDERSYSTEM_H

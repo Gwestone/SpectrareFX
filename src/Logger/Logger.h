@@ -1,5 +1,4 @@
-#ifndef PARALLEL_LOGGER_H
-#define PARALLEL_LOGGER_H
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -23,5 +22,3 @@ public:
     static const std::string asciiPatternStart;
     static const std::string asciiPatternEnd;
 };
-
-#endif //PARALLEL_LOGGER_H

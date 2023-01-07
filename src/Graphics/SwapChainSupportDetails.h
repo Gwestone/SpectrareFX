@@ -1,6 +1,4 @@
-#ifndef PARALLEL_SWAPCHAINSUPPORTDETAILS_H
-#define PARALLEL_SWAPCHAINSUPPORTDETAILS_H
-
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -13,5 +11,3 @@ struct SwapChainSupportDetails {
         return !formats.empty() and !presentModes.empty();
     }
 };
-
-#endif //PARALLEL_SWAPCHAINSUPPORTDETAILS_H

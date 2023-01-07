@@ -112,20 +112,9 @@ void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     };
 
-//    device.createBuffer(allocSize,
-//                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-//                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-//                        stagingIndicesBuffer,
-//                        stagingIndicesBufferMemory);
-
     stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)_indicesList.data());
     stagingBuffer.unmap();
-
-//    void *data;
-//    vkMapMemory(device.getDevice(), stagingIndicesBufferMemory, 0, allocSize, 0, &data);
-//    memcpy(data, _indicesList.data(), static_cast<size_t>(allocSize));
-//    vkUnmapMemory(device.getDevice(), stagingIndicesBufferMemory);
 
     indexBuffer = std::make_unique<Buffer>(device,
                                            instanceSize,
@@ -133,18 +122,9 @@ void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
                                            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-//    device.createBuffer(allocSize,
-//                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-//                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-//                        indicesBuffer,
-//                        indicesBufferMemory);
-
     if (device.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), indexBuffer->getBufferSize()) != VK_SUCCESS){
         throw std::runtime_error("cant copy local buffer to gpu");
     };
-//    vkDestroyBuffer(device.getDevice(), stagingIndicesBuffer, nullptr);
-//    vkFreeMemory(device.getDevice(), stagingIndicesBufferMemory, nullptr);
-
 }
 
 void Model::bindDataToBuffer(const VkCommandBuffer &commandBuffer) {
@@ -162,18 +142,6 @@ void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indicesCount), 1, 0, 0, 0);
     else
         vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
-
-
-    //make draw gui function
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::ShowDemoWindow();
-
-    ImGui::Render();
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-
 }
 
 std::unique_ptr<Model> Model::loadFromFile(Device &device, const std::string &_filepath) {

@@ -1,5 +1,4 @@
-#ifndef PARALLEL_WRAPPER_H
-#define PARALLEL_WRAPPER_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 
@@ -22,5 +21,3 @@ public:
         }
     }
 };
-
-#endif //PARALLEL_WRAPPER_H

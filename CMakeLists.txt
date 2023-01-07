@@ -31,7 +31,7 @@ set(ImGuiImportFiles
         libs/imgui/imgui_widgets.cpp
         libs/imgui/imgui_demo.cpp
         libs/imgui/backends/imgui_impl_glfw.h libs/imgui/backends/imgui_impl_glfw.cpp
-        libs/imgui/backends/imgui_impl_vulkan.h libs/imgui/backends/imgui_impl_vulkan.cpp)
+        libs/imgui/backends/imgui_impl_vulkan.h libs/imgui/backends/imgui_impl_vulkan.cpp src/Graphics/systems/ImGuiRenderSysten.cpp src/Graphics/systems/ImGuiRenderSystem.h)
 
 include_directories("./libs/tinyobjloader")
 include_directories("./libs/imgui")
@@ -59,7 +59,7 @@ add_executable(SpectrareFX
         src/Graphics/Object.cpp src/Graphics/Object.h
         src/Graphics/Camera.cpp src/Graphics/Camera.h
         src/Graphics/Render.h src/Graphics/Render.cpp
-        src/Graphics/BasicRenderSystem.h src/Graphics/BasicRenderSystem.cpp
+        src/Graphics/systems/BasicRenderSystem.h src/Graphics/systems/BasicRenderSystem.cpp
         src/Graphics/KeyboardMovementController.h src/Graphics/KeyboardMovementController.cpp
         src/Graphics/utils.h
         src/Graphics/Buffer.h src/Graphics/Buffer.cpp

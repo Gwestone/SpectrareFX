@@ -1,5 +1,4 @@
 #include "BasicRenderSystem.h"
-#include "Camera.h"
 
 BasicRenderSystem::BasicRenderSystem(Device &_device, VkRenderPass renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout,
                                      Logger &_log)

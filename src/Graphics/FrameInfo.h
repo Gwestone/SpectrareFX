@@ -1,5 +1,4 @@
-#ifndef SPECTRAREFX_FRAMEINFO_H
-#define SPECTRAREFX_FRAMEINFO_H
+#pragma once
 
 #include "Camera.h"
 #include <vulkan/vulkan.h>
@@ -11,5 +10,3 @@ struct FrameInfo{
     Camera &camera;
     VkDescriptorSet &globalDescriptorSet;
 };
-
-#endif //SPECTRAREFX_FRAMEINFO_H

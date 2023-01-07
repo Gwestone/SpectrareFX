@@ -1,5 +1,4 @@
-#ifndef PARALLEL_SWAPCHAIN_H
-#define PARALLEL_SWAPCHAIN_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -79,5 +78,3 @@ private:
     std::vector<VkFence> imagesInFlight;
     size_t currentFrame = 0;
 };
-
-#endif //PARALLEL_SWAPCHAIN_H

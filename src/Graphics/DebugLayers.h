@@ -1,5 +1,4 @@
-#ifndef PARALLEL_DEBUGLAYERS_H
-#define PARALLEL_DEBUGLAYERS_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -18,5 +17,3 @@ public:
     //callbacks
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 };
-
-#endif //PARALLEL_DEBUGLAYERS_H

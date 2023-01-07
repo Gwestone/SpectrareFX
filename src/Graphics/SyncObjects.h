@@ -1,5 +1,4 @@
-#ifndef PARALLEL_SYNCOBJECTS_H
-#define PARALLEL_SYNCOBJECTS_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 
@@ -20,5 +19,3 @@ struct SyncObjects{
         }
     }
 };
-
-#endif //PARALLEL_SYNCOBJECTS_H

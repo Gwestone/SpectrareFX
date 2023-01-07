@@ -1,30 +1,25 @@
-#ifndef SPECTRAREFX_APP_H
-#define SPECTRAREFX_APP_H
+#pragma once
 
 #include <vulkan/vulkan_core.h>
 #include <memory>
-#include "Window.h"
-#include "Device.h"
-#include "Model.h"
 
-#include "BasicRenderSystem.h"
 #include "KeyboardMovementController.h"
 #include "Descriptors.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
+
 #include <glm/vec3.hpp>
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <glm/detail/type_mat3x3.hpp>
-#include "Device.h"
-#include "Object.h"
-#include "Camera.h"
+
 #include "Render.h"
+#include "systems/BasicRenderSystem.h"
 
 #include "imguiImports.h"
 
-struct GlobalUBO{
+struct GlobalUBO {
     alignas(16) glm::mat4 projectionView{1.0f};
     alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{3.0f, -5.0f, 1.0f});
 };
@@ -32,14 +27,18 @@ struct GlobalUBO{
 class App {
 public:
     App();
+
     ~App();
+
     void run();
 
     App(const App &) = delete;
-    App& operator=(const App &) = delete;
+
+    App &operator=(const App &) = delete;
 
 private:
     void createCameraObject();
+
     void loadObjects();
 
 private:
@@ -58,5 +57,3 @@ private:
 private:
 
 };
-
-#endif //SPECTRAREFX_APP_H

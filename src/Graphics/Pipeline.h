@@ -1,8 +1,11 @@
-#ifndef PARALLEL_PIPELINE_H
-#define PARALLEL_PIPELINE_H
+#pragma once
 
+#include <cassert>
 #include <string>
-#include "Device.h"
+
+#include "Vh.h"
+#include "../FileHelper.h"
+#include "Model.h"
 
 struct PipelineConfigInfo {
     VkPipelineViewportStateCreateInfo viewportInfo;
@@ -48,5 +51,3 @@ private:
 
     void createGraphicsPipeline(const std::string &vertexFilePath, const std::string &fragmentFilePath);
 };
-
-#endif //PARALLEL_PIPELINE_H

@@ -1,7 +1,7 @@
-#ifndef SPECTRAREFX_BUFFER_H
-#define SPECTRAREFX_BUFFER_H
+#pragma once
 
 #include "Device.h"
+
 class Buffer {
 public:
     Buffer(
@@ -53,5 +53,3 @@ private:
     VkBufferUsageFlags usageFlags;
     VkMemoryPropertyFlags memoryPropertyFlags;
 };
-
-#endif //SPECTRAREFX_BUFFER_H

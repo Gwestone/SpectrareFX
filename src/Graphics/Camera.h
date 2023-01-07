@@ -1,5 +1,4 @@
-#ifndef SPECTRAREFX_CAMERA_H
-#define SPECTRAREFX_CAMERA_H
+#pragma once
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -28,5 +27,3 @@ public:
     glm::vec3 direction{0.0f, 0.0f, 1.0f};
     glm::vec3 position{0.0f, 0.0f, 0.0f};
 };
-
-#endif //SPECTRAREFX_CAMERA_H

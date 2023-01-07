@@ -1,8 +1,4 @@
-#include <cassert>
 #include "Pipeline.h"
-#include "Vh.h"
-#include "../FileHelper.h"
-#include "Model.h"
 
 Pipeline::Pipeline(Device &_device, const std::string &vertexFilePath, const std::string &fragmentFilePath,
                    const PipelineConfigInfo &_createInfo, const Logger &_log) : device(_device), log(_log), createInfo(_createInfo) {

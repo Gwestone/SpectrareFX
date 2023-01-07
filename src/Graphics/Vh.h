@@ -1,5 +1,4 @@
-#ifndef PARALLEL_VH_H
-#define PARALLEL_VH_H
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <cstdlib>
@@ -46,6 +45,3 @@ public:
 
     static VkCommandPool createCommandPool(const VkDevice &logDevice, QueueFamilyIndices indices);
 };
-
-
-#endif //PARALLEL_VH_H

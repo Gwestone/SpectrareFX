@@ -1,5 +1,4 @@
-#ifndef SPECTRAREFX_OBJECT_H
-#define SPECTRAREFX_OBJECT_H
+#pragma once
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -32,5 +31,3 @@ public:
     std::unique_ptr<Model> mesh;
     TransformationPrimitive transform;
 };
-
-#endif //SPECTRAREFX_OBJECT_H

@@ -1,5 +1,4 @@
-#ifndef PARALLEL_WINDOW_H
-#define PARALLEL_WINDOW_H
+#pragma once
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -44,5 +43,3 @@ private:
     CursorPos cursorPos{};
     CursorPos deltaCursorPos{};
 };
-
-#endif //PARALLEL_WINDOW_H
