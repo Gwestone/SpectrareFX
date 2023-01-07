@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include "imguiImports.h"
+
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
@@ -160,6 +162,18 @@ void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indicesCount), 1, 0, 0, 0);
     else
         vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+
+
+    //make draw gui function
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::Render();
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+
 }
 
 std::unique_ptr<Model> Model::loadFromFile(Device &device, const std::string &_filepath) {

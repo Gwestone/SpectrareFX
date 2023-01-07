@@ -43,6 +43,7 @@ public:
     VkQueue getPresentationQueue(){return presentationQueue;};
     VkCommandPool getCommandPool(){return commandPool;};
     VkResult copyBuffer(const VkBuffer & _srcBuffer, const VkBuffer & _dstBuffer, VkDeviceSize size);
+    VkInstance getInstance(){return instance; }
 
 private:
     Logger log;

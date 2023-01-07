@@ -22,6 +22,8 @@
 #include "Camera.h"
 #include "Render.h"
 
+#include "imguiImports.h"
+
 struct GlobalUBO{
     alignas(16) glm::mat4 projectionView{1.0f};
     alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{3.0f, -5.0f, 1.0f});
@@ -50,6 +52,9 @@ private:
 
     std::unique_ptr<lve::LveDescriptorPool> globalPool{};
     std::unique_ptr<Camera> mainCamera;
+
+    std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point newTime = std::chrono::high_resolution_clock::now();
 private:
 
 };
