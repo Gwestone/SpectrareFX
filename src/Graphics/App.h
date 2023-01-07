@@ -9,6 +9,7 @@
 
 #include "BasicRenderSystem.h"
 #include "KeyboardMovementController.h"
+#include "Descriptors.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
@@ -20,6 +21,11 @@
 #include "Object.h"
 #include "Camera.h"
 #include "Render.h"
+
+struct GlobalUBO{
+    alignas(16) glm::mat4 projectionView{1.0f};
+    alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{3.0f, -5.0f, 1.0f});
+};
 
 class App {
 public:
@@ -42,6 +48,7 @@ private:
     std::vector<Object> objects;
     Render renderer{mainWindow, device};
 
+    std::unique_ptr<lve::LveDescriptorPool> globalPool{};
     std::unique_ptr<Camera> mainCamera;
 private:
 

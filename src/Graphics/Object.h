@@ -16,7 +16,7 @@ struct TransformationPrimitive{
 
     glm::mat4 getTransformationMatrix();
     glm::mat4 getTransformationMatrixFAST();
-
+    glm::mat3 getNormalMatrix();
 };
 
 class Object {

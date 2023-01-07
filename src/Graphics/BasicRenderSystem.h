@@ -7,27 +7,29 @@
 #include "Pipeline.h"
 #include "Object.h"
 #include "Camera.h"
+#include "FrameInfo.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_TO_ZERO
 #include <glm/ext/matrix_float2x2.hpp>
 
 struct PushConstantData{
-    glm::mat4 transformation{1.f};
+    glm::mat4 modelMatrix{1.0f};
+    glm::mat4 normalMatrix{1.0f};
 };
 
 class BasicRenderSystem {
 public:
-    BasicRenderSystem(Device &_device, VkRenderPass renderPass, Logger &_log);
+    BasicRenderSystem(Device &_device, VkRenderPass renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout, Logger &_log);
     ~BasicRenderSystem();
 
     BasicRenderSystem(const BasicRenderSystem &) = delete;
     BasicRenderSystem &operator=(const BasicRenderSystem &) = delete;
 
-    void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<Object> &gameObjects, Camera &_camera);
+    void renderGameObjects(const FrameInfo &_frameInfo, std::vector<Object> &gameObjects);
 
 private:
-    void createPipelineLayout();
+    void createPipelineLayout(VkDescriptorSetLayout &_globalDescriptorSetLayout);
     void createPipeline(VkRenderPass renderPass);
 
     Device &device;

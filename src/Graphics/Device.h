@@ -16,6 +16,8 @@ public:
     Device(Device &&) = delete;
     Device &operator=(Device &&) = delete;
 
+public:
+
     Device(const Window &_window, const Logger &_log);
     SwapChainSupportDetails getSwapChainSupportDetails();
     QueueFamilyIndices findPhysicalQueueFamilies();
@@ -60,6 +62,9 @@ private:
 
     VkQueue graphicsQueue;
     VkQueue presentationQueue;
+
+public:
+    VkPhysicalDeviceProperties properties;
 };
 
 #endif //PARALLEL_DEVICE_H

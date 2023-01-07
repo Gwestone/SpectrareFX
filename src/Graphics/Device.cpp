@@ -8,6 +8,9 @@ Device::Device(const Window &_window, const Logger &_log) : window(_window), log
 
     surface_ = Vh::createWindowSurface(instance, window.getWindowObj());
     physicalDevice = Vh::createPhysicalDevice(instance, surface_, log);
+
+    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
     queueFamilySetupData = Vh::findQueueFamilies(physicalDevice, surface_);
     populatedQueueFamiliesData = Vh::populateQueueCreateInfo(queueFamilySetupData);
     device_ = Vh::createLogicalDevice(physicalDevice, queueFamilySetupData, populatedQueueFamiliesData);

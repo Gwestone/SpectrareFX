@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "utils.h"
+#include "Buffer.h"
 
 struct Vertex{
     glm::vec3 position{0.0f, 0.0f, 0.0f};
@@ -44,18 +45,10 @@ private:
     Device& device;
 
     //vertex buffer
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    //-----------------------------------
-    VkBuffer stagingVertexBuffer;
-    VkDeviceMemory stagingVertexBufferMemory;
+    std::unique_ptr<Buffer> vertexBuffer;
 
     //indices buffer
-    VkBuffer indicesBuffer;
-    VkDeviceMemory indicesBufferMemory;
-    //-----------------------------------
-    VkBuffer stagingIndicesBuffer;
-    VkDeviceMemory stagingIndicesBufferMemory;
+    std::unique_ptr<Buffer> indexBuffer;
 
     uint32_t vertexCount = 0;
 

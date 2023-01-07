@@ -20,14 +20,7 @@ Model::Model(Device &_device, const Builder &_builder) : device(_device) {
     createIndexBuffers(_builder.indices);
 }
 
-Model::~Model() {
-    vkDestroyBuffer(device.getDevice(), vertexBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), vertexBufferMemory, nullptr);
-    if (hasIndices){
-        vkDestroyBuffer(device.getDevice(), indicesBuffer, nullptr);
-        vkFreeMemory(device.getDevice(), indicesBufferMemory, nullptr);
-    }
-}
+Model::~Model() {}
 
 VkVertexInputBindingDescription Vertex::getBindingDescription() {
     VkVertexInputBindingDescription bindingDescription{};
@@ -41,7 +34,7 @@ VkVertexInputBindingDescription Vertex::getBindingDescription() {
 
 std::vector <VkVertexInputAttributeDescription> Vertex::getAttributeDescription() {
 
-    std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptionsList(2);
+    std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptionsList(4);
 
     vertexInputAttributeDescriptionsList[0].binding = 0;
     vertexInputAttributeDescriptionsList[0].location = 0;
@@ -55,35 +48,47 @@ std::vector <VkVertexInputAttributeDescription> Vertex::getAttributeDescription(
     vertexInputAttributeDescriptionsList[1].format = VK_FORMAT_R32G32B32_SFLOAT;
     vertexInputAttributeDescriptionsList[1].offset = offsetof(Vertex, color);
 
+    vertexInputAttributeDescriptionsList[2].binding = 0;
+    vertexInputAttributeDescriptionsList[2].location = 2;
+    //allocate 32 bits for every number in color vector
+    vertexInputAttributeDescriptionsList[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexInputAttributeDescriptionsList[2].offset = offsetof(Vertex, normal);
+
+    vertexInputAttributeDescriptionsList[3].binding = 0;
+    vertexInputAttributeDescriptionsList[3].location = 3;
+    //allocate 24 bits for every number in texture coordinate
+    vertexInputAttributeDescriptionsList[3].format = VK_FORMAT_R32G32_SFLOAT;
+    vertexInputAttributeDescriptionsList[3].offset = offsetof(Vertex, uv);
+
     return vertexInputAttributeDescriptionsList;
 }
 
 void Model::createVertexBuffers(const std::vector<Vertex> &_vertexList) {
     vertexCount = static_cast<uint32_t>(_vertexList.size());
-    VkDeviceSize allocSize = sizeof(_vertexList[0]) * vertexCount;
+    assert(vertexCount > 3 && "cant be mesh with less than 3 verices");
+    VkDeviceSize instanceSize = sizeof(_vertexList[0]);
 
-    device.createBuffer(allocSize,
-                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingVertexBuffer,
-                        stagingVertexBufferMemory);
+    Buffer stagingBuffer{
+        device,
+        instanceSize,
+        vertexCount,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    };
 
-    void *data;
-    vkMapMemory(device.getDevice(), stagingVertexBufferMemory, 0, allocSize, 0, &data);
-    memcpy(data, _vertexList.data(), static_cast<size_t>(allocSize));
-    vkUnmapMemory(device.getDevice(), stagingVertexBufferMemory);
+    stagingBuffer.map();
+    stagingBuffer.writeToBuffer((void *)_vertexList.data());
+    stagingBuffer.unmap();
 
-    device.createBuffer(allocSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        vertexBuffer,
-                        vertexBufferMemory);
+    vertexBuffer = std::make_unique<Buffer>(device,
+                                            instanceSize,
+                                            vertexCount,
+                                            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    if (device.copyBuffer(stagingVertexBuffer, vertexBuffer, allocSize) != VK_SUCCESS){
+    if (device.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), vertexBuffer->getBufferSize()) != VK_SUCCESS) {
         throw std::runtime_error("cant copy local buffer to gpu");
     };
-    vkDestroyBuffer(device.getDevice(), stagingVertexBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), stagingVertexBufferMemory, nullptr);
 }
 
 void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
@@ -95,41 +100,59 @@ void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
     if(!hasIndices)
         return;
 
-    VkDeviceSize allocSize = sizeof(_indicesList[0]) * indicesCount;
+    VkDeviceSize instanceSize = sizeof(_indicesList[0]);
 
-    device.createBuffer(allocSize,
-                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingIndicesBuffer,
-                        stagingIndicesBufferMemory);
+    Buffer stagingBuffer{
+            device,
+            instanceSize,
+            indicesCount,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    };
 
-    void *data;
-    vkMapMemory(device.getDevice(), stagingIndicesBufferMemory, 0, allocSize, 0, &data);
-    memcpy(data, _indicesList.data(), static_cast<size_t>(allocSize));
-    vkUnmapMemory(device.getDevice(), stagingIndicesBufferMemory);
+//    device.createBuffer(allocSize,
+//                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+//                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+//                        stagingIndicesBuffer,
+//                        stagingIndicesBufferMemory);
 
-    device.createBuffer(allocSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        indicesBuffer,
-                        indicesBufferMemory);
+    stagingBuffer.map();
+    stagingBuffer.writeToBuffer((void *)_indicesList.data());
+    stagingBuffer.unmap();
 
-    if (device.copyBuffer(stagingIndicesBuffer, indicesBuffer, allocSize) != VK_SUCCESS){
+//    void *data;
+//    vkMapMemory(device.getDevice(), stagingIndicesBufferMemory, 0, allocSize, 0, &data);
+//    memcpy(data, _indicesList.data(), static_cast<size_t>(allocSize));
+//    vkUnmapMemory(device.getDevice(), stagingIndicesBufferMemory);
+
+    indexBuffer = std::make_unique<Buffer>(device,
+                                           instanceSize,
+                                           indicesCount,
+                                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+//    device.createBuffer(allocSize,
+//                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+//                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+//                        indicesBuffer,
+//                        indicesBufferMemory);
+
+    if (device.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), indexBuffer->getBufferSize()) != VK_SUCCESS){
         throw std::runtime_error("cant copy local buffer to gpu");
     };
-    vkDestroyBuffer(device.getDevice(), stagingIndicesBuffer, nullptr);
-    vkFreeMemory(device.getDevice(), stagingIndicesBufferMemory, nullptr);
+//    vkDestroyBuffer(device.getDevice(), stagingIndicesBuffer, nullptr);
+//    vkFreeMemory(device.getDevice(), stagingIndicesBufferMemory, nullptr);
 
 }
 
 void Model::bindDataToBuffer(const VkCommandBuffer &commandBuffer) {
 
-    VkBuffer buffer[] = {vertexBuffer};
+    VkBuffer buffer[] = {vertexBuffer->getBuffer()};
     VkDeviceSize offsets[] = {0};
 
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffer, offsets);
     if (hasIndices)
-        vkCmdBindIndexBuffer(commandBuffer, indicesBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
 void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {

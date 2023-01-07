@@ -48,6 +48,11 @@ public:
 
     float getAspectRatio(){return swapChain->extentAspectRatio();}
 
+    int getFrameIndex(){
+        assert(isFrameStarted && "Cannot get frame index when frame not in progress");
+        return currentFrameIndex;
+    }
+
 private:
     Window& mainWindow;
     Device& device;
@@ -56,6 +61,7 @@ private:
     std::unique_ptr<SwapChain> swapChain;
 
     uint32_t currentImageIndex = 0;
+    int currentFrameIndex = 0;
     bool isFrameStarted = false;
 };
 

@@ -1,6 +1,10 @@
 #include "App.h"
 
 App::App() {
+    globalPool = lve::LveDescriptorPool::Builder(device)
+            .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+            .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+            .build();
     loadObjects();
     createCameraObject();
 }
@@ -18,7 +22,30 @@ void App::createCameraObject() {
 
 void App::run() {
 
-    BasicRenderSystem basicRenderSystem{device, renderer.getRenderPass(), log};
+    std::vector<std::unique_ptr<Buffer>> uboBuffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < uboBuffers.size(); i++) {
+        uboBuffers[i] = std::make_unique<Buffer>(
+                device,
+                sizeof(GlobalUBO),
+                1,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+        uboBuffers[i]->map();
+    }
+
+    auto globalSetLayout = lve::LveDescriptorSetLayout::Builder(device)
+            .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .build();
+
+    std::vector<VkDescriptorSet> globalDescriptorSetsList(SwapChain::MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < globalDescriptorSetsList.size(); ++i) {
+        auto bufferInfo = uboBuffers[i]->descriptorInfo();
+        lve::LveDescriptorWriter(*globalSetLayout, *globalPool)
+                .writeBuffer(0, &bufferInfo)
+                .build(globalDescriptorSetsList[i]);
+    }
+
+    BasicRenderSystem basicRenderSystem{device, renderer.getRenderPass(), globalSetLayout->getDescriptorSetLayout(), log};
 
     auto currentTime = std::chrono::high_resolution_clock::now();
     auto newTime = std::chrono::high_resolution_clock::now();
@@ -41,9 +68,20 @@ void App::run() {
         mainCamera->setProspectiveProjection(glm::radians(50.f), renderer.getAspectRatio(), 0.1f, 10.0f);
 
         auto commandBuffer = renderer.beginFrame();
+
         if (commandBuffer != nullptr){
+            int frameIndex = renderer.getFrameIndex();
+            FrameInfo frameInfo{frameIndex, timestep, commandBuffer, *mainCamera, globalDescriptorSetsList[frameIndex]};
+
+            //update
+            GlobalUBO ubo{};
+            ubo.projectionView = mainCamera->getProjectionMatrix() * mainCamera->getViewMatrix();
+            uboBuffers[frameIndex]->writeToBuffer(&ubo);
+            uboBuffers[frameIndex]->flush();
+
+            //render
             renderer.beginRenderPass(commandBuffer);
-            basicRenderSystem.renderGameObjects(commandBuffer, objects, *mainCamera);
+            basicRenderSystem.renderGameObjects(frameInfo, objects);
             renderer.endRenderPass(commandBuffer);
             renderer.endFrame();
         }
@@ -53,7 +91,7 @@ void App::run() {
 
 void App::loadObjects() {
     Object cube{};
-    auto model = Model::loadFromFile(device, "./models/colored_cube.obj");
+    auto model = Model::loadFromFile(device, "./models/smooth_vase.obj");
 
     cube.mesh = std::move(model);
     cube.transform.rotation = {0.0f, 0.0f, 0.0f};
