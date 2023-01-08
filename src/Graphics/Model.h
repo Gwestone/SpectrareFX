@@ -16,6 +16,7 @@
 
 #include "utils.h"
 #include "Buffer.h"
+#include "ImageBuffer.h"
 
 struct Vertex{
     glm::vec3 position{0.0f, 0.0f, 0.0f};
@@ -31,14 +32,26 @@ struct Vertex{
     }
 };
 
+struct ImageBuilder{
+    void* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    int channels_size = 0;
+    bool initialized = false;
+};
+
 struct Builder{
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
-    void loadFromFile(const std::string &filepath);
+    ImageBuilder image{};
+
+    void loadFromModelFile(const std::string &filepath);
+    void loadTextureFile(const std::string &filepath);
 };
 
 class Model {
 private:
+
     Device& device;
 
     //vertex buffer
@@ -47,21 +60,26 @@ private:
     //indices buffer
     std::unique_ptr<Buffer> indexBuffer;
 
+    //texture buffer
+    std::unique_ptr<ImageBuffer> textureBuffer;
+
     uint32_t vertexCount = 0;
 
     uint32_t indicesCount = 0;
     bool hasIndices = false;
+    bool hasTexture = false;
 public:
     Model(Device &_device, const Builder &_builder);
     ~Model();
 
     void createVertexBuffers(const std::vector<Vertex>& _vertexList);
-
     void createIndexBuffers(const std::vector<uint32_t>& _indicesList);
+    void createTextureBuffers(const ImageBuilder &_image);
 
     void bindDataToBuffer(const VkCommandBuffer &commandBuffer);
     void drawDataToBuffer(const VkCommandBuffer &commandBuffer) const;
 
 public:
-    static std::unique_ptr<Model> loadFromFile(Device& device, const std::string &_filepath);
+    static std::unique_ptr<Model> loadFromFile(Device &device, const std::string &_modelFilepath, const std::string &_textureFilepath);
+
 };

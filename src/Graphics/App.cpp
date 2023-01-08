@@ -70,7 +70,6 @@ void App::run() {
         mainCamera->setProspectiveProjection(glm::radians(50.f), renderer.getAspectRatio(), 0.1f, 10.0f);
 
         auto commandBuffer = renderer.beginFrame();
-
         if (commandBuffer != nullptr){
             int frameIndex = renderer.getFrameIndex();
             FrameInfo frameInfo{frameIndex, timestep, commandBuffer, *mainCamera, globalDescriptorSetsList[frameIndex]};
@@ -96,12 +95,12 @@ void App::run() {
 
 void App::loadObjects() {
     Object cube{};
-    auto model = Model::loadFromFile(device, "./models/smooth_vase.obj");
+    auto model = Model::loadFromFile(device, "./models/viking_room.obj", "./textures/viking_room.png");
 
     cube.mesh = std::move(model);
-    cube.transform.rotation = {0.0f, 0.0f, 0.0f};
+    cube.transform.rotation = {glm::half_pi<float>(), 0.0f, 0.0f};
     cube.transform.translation = {0.0f, 0.0f, 0.0f};
-    cube.transform.scaleVector = {1.0f, 1.0f, 1.0f};
+    cube.transform.scaleVector = {0.5f, 0.5f, 0.5f};
 
     objects.push_back(std::move(cube));
 }

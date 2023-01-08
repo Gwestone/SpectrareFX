@@ -5,6 +5,10 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+
 namespace std {
     template <>
     struct hash<Vertex> {
@@ -16,13 +20,17 @@ namespace std {
     };
 }
 
+
 Model::Model(Device &_device, const Builder &_builder) : device(_device) {
 
     createVertexBuffers(_builder.vertices);
     createIndexBuffers(_builder.indices);
+    createTextureBuffers(_builder.image);
 }
 
+
 Model::~Model() {}
+
 
 VkVertexInputBindingDescription Vertex::getBindingDescription() {
     VkVertexInputBindingDescription bindingDescription{};
@@ -33,6 +41,7 @@ VkVertexInputBindingDescription Vertex::getBindingDescription() {
 
     return bindingDescription;
 }
+
 
 std::vector <VkVertexInputAttributeDescription> Vertex::getAttributeDescription() {
 
@@ -65,6 +74,7 @@ std::vector <VkVertexInputAttributeDescription> Vertex::getAttributeDescription(
     return vertexInputAttributeDescriptionsList;
 }
 
+
 void Model::createVertexBuffers(const std::vector<Vertex> &_vertexList) {
     vertexCount = static_cast<uint32_t>(_vertexList.size());
     assert(vertexCount > 3 && "cant be mesh with less than 3 verices");
@@ -92,6 +102,7 @@ void Model::createVertexBuffers(const std::vector<Vertex> &_vertexList) {
         throw std::runtime_error("cant copy local buffer to gpu");
     };
 }
+
 
 void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
     indicesCount = _indicesList.size();
@@ -127,6 +138,50 @@ void Model::createIndexBuffers(const std::vector<uint32_t> &_indicesList) {
     };
 }
 
+
+void Model::createTextureBuffers(const ImageBuilder &_image) {
+
+    if (_image.pixels)
+        hasTexture = true;
+
+    if (!hasTexture)
+        return;
+
+
+
+    VkDeviceSize instanceSize = _image.width * _image.height * STBI_rgb_alpha;  
+
+    //writing staging buffer
+    Buffer stagingBuffer{
+            device,
+            instanceSize,
+            1,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    };
+
+    stagingBuffer.map();
+    stagingBuffer.writeToBuffer((void *)_image.pixels);
+    stagingBuffer.unmap();
+    stbi_image_free(_image.pixels);
+
+    textureBuffer = std::make_unique<ImageBuffer>(device,
+                                                  VK_IMAGE_TYPE_2D,
+                                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                                  VK_FORMAT_R8G8B8A8_SRGB,
+                                                  VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                                                  _image.width,
+                                                  _image.height);
+
+    textureBuffer->transitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    auto res = device.copyBufferToImage(stagingBuffer.getBuffer(), textureBuffer->getImage(), static_cast<uint32_t>(_image.width), static_cast<uint32_t>(_image.height));
+    if (res != VK_SUCCESS){
+        throw std::runtime_error("failed to copy buffer to image");
+    }
+    textureBuffer->transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+
 void Model::bindDataToBuffer(const VkCommandBuffer &commandBuffer) {
 
     VkBuffer buffer[] = {vertexBuffer->getBuffer()};
@@ -137,6 +192,7 @@ void Model::bindDataToBuffer(const VkCommandBuffer &commandBuffer) {
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
+
 void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {
     if (hasIndices)
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indicesCount), 1, 0, 0, 0);
@@ -144,14 +200,21 @@ void Model::drawDataToBuffer(const VkCommandBuffer &commandBuffer) const {
         vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
 }
 
-std::unique_ptr<Model> Model::loadFromFile(Device &device, const std::string &_filepath) {
+
+std::unique_ptr<Model> Model::loadFromFile(Device &device, const std::string &_modelFilepath = "", const std::string &_textureFilepath = "") {
     Builder builder{};
-    builder.loadFromFile(_filepath);
+
+    if (!_modelFilepath.empty())
+        builder.loadFromModelFile(_modelFilepath);
+//    if (!_textureFilepath.empty())
+//        builder.loadTextureFile(_textureFilepath);
+
     auto model = std::make_unique<Model>(device, builder);
     return model;
 }
 
-void Builder::loadFromFile(const std::string &filepath) {
+
+void Builder::loadFromModelFile(const std::string &filepath) {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -209,5 +272,14 @@ void Builder::loadFromFile(const std::string &filepath) {
             }
             indices.push_back(uniqueVertices[vertex]);
         }
+    }
+}
+
+void Builder::loadTextureFile(const std::string &filepath) {
+
+    image.pixels = stbi_load(filepath.c_str(), &image.width, &image.height, &image.channels_size, STBI_rgb_alpha);
+
+    if (!image.pixels) {
+        throw std::runtime_error("failed to load texture image!");
     }
 }

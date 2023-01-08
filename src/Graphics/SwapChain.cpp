@@ -10,9 +10,7 @@ SwapChain::SwapChain(Device &deviceRef, const Logger &_log)
     createImageViews();
     createDepthResources();
     createRenderPass();
-    log.printInfo("Successfully created render pass");
     createFramebuffers();
-    log.printInfo("Successfully created frame buffers");
     createSyncObjects();
 
 }
@@ -23,9 +21,7 @@ SwapChain::SwapChain(Device &deviceRef, const Logger &_log, SwapChain &_swapChai
     createImageViews();
     createDepthResources();
     createRenderPass();
-    log.printInfo("Successfully created render pass");
     createFramebuffers();
-    log.printInfo("Successfully created frame buffers");
     createSyncObjects();
 }
 

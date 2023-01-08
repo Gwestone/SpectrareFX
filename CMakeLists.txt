@@ -31,10 +31,11 @@ set(ImGuiImportFiles
         libs/imgui/imgui_widgets.cpp
         libs/imgui/imgui_demo.cpp
         libs/imgui/backends/imgui_impl_glfw.h libs/imgui/backends/imgui_impl_glfw.cpp
-        libs/imgui/backends/imgui_impl_vulkan.h libs/imgui/backends/imgui_impl_vulkan.cpp src/Graphics/systems/ImGuiRenderSysten.cpp src/Graphics/systems/ImGuiRenderSystem.h)
+        libs/imgui/backends/imgui_impl_vulkan.h libs/imgui/backends/imgui_impl_vulkan.cpp src/Graphics/systems/ImGuiRenderSysten.cpp src/Graphics/systems/ImGuiRenderSystem.h src/Graphics/ImageBuffer.cpp src/Graphics/ImageBuffer.h)
 
 include_directories("./libs/tinyobjloader")
 include_directories("./libs/imgui")
+include_directories("./libs/stb_image")
 
 #set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 project(SpectrareFX)
@@ -66,11 +67,12 @@ add_executable(SpectrareFX
         src/Graphics/FrameInfo.h
         src/Graphics/Descriptors.cpp
         src/Graphics/imguiImports.h
-        ${ImGuiImportFiles})
+        ${ImGuiImportFiles} libs/stb_image/stb_image.h)
 
 target_link_libraries(SpectrareFX glfw vulkan dl pthread X11 Xxf86vm Xrandr Xi)
 add_shader(SpectrareFX shader.frag)
 add_shader(SpectrareFX shader.vert)
 
+file(COPY "textures" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "models" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "./libs/imgui/misc/fonts" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

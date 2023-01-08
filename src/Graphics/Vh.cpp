@@ -134,7 +134,8 @@ std::vector<const char *> Vh::getRequiredExtensions() {
     return requiredExtensions;
 }
 
-VkPhysicalDevice Vh::createPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &windowSurface, const Logger &log) {
+VkPhysicalDevice
+Vh::createPhysicalDevice(const VkInstance &instance, const VkSurfaceKHR &windowSurface, const Logger &log) {
 
     //get count of physical devices
     VkPhysicalDevice device;
@@ -165,7 +166,6 @@ VkPhysicalDevice Vh::createPhysicalDevice(const VkInstance &instance, const VkSu
             break;
         }
     }
-
     return device;
 }
 
