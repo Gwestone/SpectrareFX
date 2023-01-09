@@ -213,6 +213,7 @@ VkDevice Vh::createLogicalDevice(const VkPhysicalDevice &physDevice, const Queue
 
     //set data for logical physDevice
     VkPhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

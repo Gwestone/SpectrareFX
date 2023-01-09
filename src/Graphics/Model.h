@@ -79,6 +79,8 @@ public:
     void bindDataToBuffer(const VkCommandBuffer &commandBuffer);
     void drawDataToBuffer(const VkCommandBuffer &commandBuffer) const;
 
+    ImageBuffer& getTextureBuffer(){return *textureBuffer;}
+
 public:
     static std::unique_ptr<Model> loadFromFile(Device &device, const std::string &_modelFilepath, const std::string &_textureFilepath);
 

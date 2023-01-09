@@ -3,7 +3,7 @@
 
 App::App() {
     globalPool = lve::LveDescriptorPool::Builder(device)
-            .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT * 2)
+            .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT * 3)
             .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
             .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, SwapChain::MAX_FRAMES_IN_FLIGHT * 2)
             .build();
@@ -38,15 +38,29 @@ void App::run() {
 
     auto globalSetLayout = lve::LveDescriptorSetLayout::Builder(device)
             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .build();
 
     std::vector<VkDescriptorSet> globalDescriptorSetsList(SwapChain::MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < globalDescriptorSetsList.size(); ++i) {
+
         auto bufferInfo = uboBuffers[i]->descriptorInfo();
+        auto imageInfo = objects[0].mesh->getTextureBuffer().descriptorInfo();
+
         lve::LveDescriptorWriter(*globalSetLayout, *globalPool)
                 .writeBuffer(0, &bufferInfo)
+                .writeImage(1, &imageInfo)
                 .build(globalDescriptorSetsList[i]);
     }
+
+    //loading texture
+//    VkDescriptorSet globalTextureDescriptorSet;
+//    if(!lve::LveDescriptorWriter(*globalSetLayout, *globalPool)
+//        .writeImage(1, &imageInfo)
+//        .build(globalTextureDescriptorSet)){
+//        throw std::runtime_error("cant allocate descriptor");
+//    }
+    //loading texture
 
     BasicRenderSystem basicRenderSystem{device, renderer.getRenderPass(), globalSetLayout->getDescriptorSetLayout(), log};
     ImGuiRenderSystem imGuiRenderSystem{mainWindow, device, log, renderer.getRenderPass(), globalPool->getDescriptorPool()};

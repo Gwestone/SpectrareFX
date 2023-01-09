@@ -17,6 +17,7 @@ private:
     Device &device;
     VkFormat format;
     VkImageView textureImageView;
+    VkSampler textureSampler;
 
 public:
     VkImage& getImage(){return textureImage;}
@@ -25,5 +26,6 @@ public:
     void transitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout);
     void createTextureImageView();
     void createSampler();
+    VkDescriptorImageInfo descriptorInfo();
 
 };

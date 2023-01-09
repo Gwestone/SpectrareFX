@@ -147,7 +147,7 @@ void Model::createTextureBuffers(const ImageBuilder &_image) {
     if (!hasTexture)
         return;
 
-
+    std::cout << "loading texture" << std::endl;
 
     VkDeviceSize instanceSize = _image.width * _image.height * STBI_rgb_alpha;  
 
@@ -206,8 +206,8 @@ std::unique_ptr<Model> Model::loadFromFile(Device &device, const std::string &_m
 
     if (!_modelFilepath.empty())
         builder.loadFromModelFile(_modelFilepath);
-//    if (!_textureFilepath.empty())
-//        builder.loadTextureFile(_textureFilepath);
+    if (!_textureFilepath.empty())
+        builder.loadTextureFile(_textureFilepath);
 
     auto model = std::make_unique<Model>(device, builder);
     return model;
@@ -262,7 +262,7 @@ void Builder::loadFromModelFile(const std::string &filepath) {
             if (index.texcoord_index >= 0) {
                 vertex.uv = {
                         attrib.texcoords[2 * index.texcoord_index + 0],
-                        attrib.texcoords[2 * index.texcoord_index + 1],
+                        1.0f - attrib.texcoords[2 * index.texcoord_index + 1],
                 };
             }
 
