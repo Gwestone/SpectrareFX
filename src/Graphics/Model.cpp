@@ -147,8 +147,6 @@ void Model::createTextureBuffers(const ImageBuilder &_image) {
     if (!hasTexture)
         return;
 
-    std::cout << "loading texture" << std::endl;
-
     VkDeviceSize instanceSize = _image.width * _image.height * STBI_rgb_alpha;  
 
     //writing staging buffer

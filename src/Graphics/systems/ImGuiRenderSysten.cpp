@@ -19,7 +19,7 @@ void ImGuiRenderSystem::initImGui() {
     ImGuiIO& io = ImGui::GetIO();
 
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-//    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+//    io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
 
     io.Fonts->AddFontFromFileTTF("./fonts/Roboto-Medium.ttf", 18);
 

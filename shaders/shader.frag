@@ -12,7 +12,14 @@ layout(push_constant) uniform Push{
 
 layout(binding = 1) uniform sampler2D texSampler;
 
+vec3 gammaCorrection(vec3 inColor, float gamma){
+    return pow(inColor.rgb, vec3(1.0/gamma));
+}
+
 void main() {
     outColor = texture(texSampler, uv) * vec4(fragColor, 1.0);
 //    outColor = texture(texSampler, uv);
+
+    float gamma = 2.2;
+    outColor.rgb = gammaCorrection(outColor.rgb, gamma);
 }
