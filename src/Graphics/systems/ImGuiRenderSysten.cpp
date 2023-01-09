@@ -1,9 +1,30 @@
 #include "ImGuiRenderSystem.h"
+#include "../GUI/DemoGuiLayer.h"
+#include "../GUI/HelloImGuiLayer.h"
 
 ImGuiRenderSystem::ImGuiRenderSystem(Window &_window, Device &_device, Logger &_log, VkRenderPass _renderPass,
                                      VkDescriptorPool _descriptorPool) : window(_window), device(_device), log(_log), renderPass(_renderPass), descriptorPool(_descriptorPool) {
     initImGui();
     loadFontTextureAtlas();
+    loadLayers();
+    initLayers();
+}
+
+void ImGuiRenderSystem::loadLayers() {
+    guiLayersList.push_back(std::make_unique<DemoGuiLayer>());
+    guiLayersList.push_back(std::make_unique<HelloImGuiLayer>());
+}
+
+void ImGuiRenderSystem::initLayers() {
+    for (int i = 0; i < guiLayersList.size(); ++i) {
+        guiLayersList[i]->init();
+    }
+}
+
+void ImGuiRenderSystem::renderLayers() {
+    for (int i = 0; i < guiLayersList.size(); ++i) {
+        guiLayersList[i]->render();
+    }
 }
 
 ImGuiRenderSystem::~ImGuiRenderSystem() {
@@ -46,7 +67,8 @@ void ImGuiRenderSystem::renderImGui(FrameInfo &_frameInfo) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::ShowDemoWindow();
+//    ImGui::ShowDemoWindow();
+    renderLayers();
 
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), _frameInfo.commandBuffer);

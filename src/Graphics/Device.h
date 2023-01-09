@@ -44,6 +44,7 @@ public:
     VkResult copyBuffer(const VkBuffer & _srcBuffer, const VkBuffer & _dstBuffer, VkDeviceSize size);
     VkResult copyBufferToImage(const VkBuffer & _srcBuffer, const VkImage & _dstImage, uint32_t width, uint32_t height);
     VkInstance getInstance(){return instance; }
+    VkSampleCountFlags getMaxUsableSampleCount() const;
 
 private:
     Logger log;
@@ -66,5 +67,6 @@ private:
 
 public:
     VkPhysicalDeviceProperties properties;
+    VkSampleCountFlags sampleCount;
     VkResult transitionLayout(VkImage _image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 };

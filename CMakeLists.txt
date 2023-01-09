@@ -31,7 +31,7 @@ set(ImGuiImportFiles
         libs/imgui/imgui_widgets.cpp
         libs/imgui/imgui_demo.cpp
         libs/imgui/backends/imgui_impl_glfw.h libs/imgui/backends/imgui_impl_glfw.cpp
-        libs/imgui/backends/imgui_impl_vulkan.h libs/imgui/backends/imgui_impl_vulkan.cpp src/Graphics/systems/ImGuiRenderSysten.cpp src/Graphics/systems/ImGuiRenderSystem.h src/Graphics/ImageBuffer.cpp src/Graphics/ImageBuffer.h)
+        libs/imgui/backends/imgui_impl_vulkan.h libs/imgui/backends/imgui_impl_vulkan.cpp src/Graphics/systems/ImGuiRenderSysten.cpp src/Graphics/systems/ImGuiRenderSystem.h src/Graphics/ImageBuffer.cpp src/Graphics/ImageBuffer.h src/Graphics/GUI/HelloImGuiLayer.cpp src/Graphics/GUI/HelloImGuiLayer.h)
 
 include_directories("./libs/tinyobjloader")
 include_directories("./libs/imgui")
@@ -67,7 +67,7 @@ add_executable(SpectrareFX
         src/Graphics/FrameInfo.h
         src/Graphics/Descriptors.cpp
         src/Graphics/imguiImports.h
-        ${ImGuiImportFiles} libs/stb_image/stb_image.h)
+        ${ImGuiImportFiles} libs/stb_image/stb_image.h src/Graphics/GUI/GuiLayer.h src/Graphics/GUI/DemoGuiLayer.cpp src/Graphics/GUI/DemoGuiLayer.h)
 
 target_link_libraries(SpectrareFX glfw vulkan dl pthread X11 Xxf86vm Xrandr Xi)
 add_shader(SpectrareFX shader.frag)

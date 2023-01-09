@@ -25,6 +25,8 @@ void App::createCameraObject() {
 
 void App::run() {
 
+    device.getMaxUsableSampleCount();
+
     std::vector<std::unique_ptr<Buffer>> uboBuffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
     for (int i = 0; i < uboBuffers.size(); i++) {
         uboBuffers[i] = std::make_unique<Buffer>(

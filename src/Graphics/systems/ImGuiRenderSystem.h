@@ -4,6 +4,7 @@
 #include "../FrameInfo.h"
 #include "../imguiImports.h"
 #include "../SwapChain.h"
+#include "../GUI/GuiLayer.h"
 
 class ImGuiRenderSystem {
 public:
@@ -23,6 +24,8 @@ private:
     VkDescriptorPool &descriptorPool;
     VkCommandPool commandPool;
 
+    std::vector<std::unique_ptr<GuiLayer>> guiLayersList;
+
 public:
     void renderImGui(FrameInfo &_frameInfo);
 
@@ -31,4 +34,8 @@ private:
     void loadFontTextureAtlas();
     VkCommandBuffer startCommandBuffer();
     void endCommandBuffer(VkCommandBuffer &_commandBuffer);
+
+    void loadLayers();
+    void initLayers();
+    void renderLayers();
 };

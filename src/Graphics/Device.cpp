@@ -10,6 +10,7 @@ Device::Device(const Window &_window, const Logger &_log) : window(_window), log
     physicalDevice = Vh::createPhysicalDevice(instance, surface_, log);
 
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+    sampleCount = getMaxUsableSampleCount();
 
     queueFamilySetupData = Vh::findQueueFamilies(physicalDevice, surface_);
     populatedQueueFamiliesData = Vh::populateQueueCreateInfo(queueFamilySetupData);
@@ -293,4 +294,16 @@ VkResult Device::transitionLayout(VkImage _image, VkFormat format, VkImageLayout
     vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
 
     return res;
+}
+
+VkSampleCountFlags Device::getMaxUsableSampleCount() const {
+    VkSampleCountFlags counts = properties.limits.framebufferColorSampleCounts & properties.limits.framebufferDepthSampleCounts;
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT;
 }
